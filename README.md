@@ -2,8 +2,8 @@
 This project provides a web-based database for storing and analyzing AI model performance on Edge AI devices. It allows users to compare models based on accuracy, energy consumption, and various optimization parameters (compression, quantization, etc.) to select the best configuration before deployment.
 
 ## Table of contents
-[Prerequisites](#prerequisites)
-
+1. [Prerequisites](#prerequisites)
+2. [Django basic command](#django-basics)
 
 ----
 ### Prerequisites
@@ -18,7 +18,7 @@ Reference: [MySQL Version X](https://www.mysql.com/fr/)
 
 #### 3. Clone git repository
 ```bash
-git clone "https://github.com/nicolas-gatta/BDDW_WS_Groupe2.git"
+git clone "https://github.com/nicolas-gatta/PIDL-Groupe2.git"
 ```
 
 #### 4. Install requirements
@@ -29,12 +29,27 @@ pip install -r requirements.txt
 #### 5. Download .env file
 Need to be done
 
-#### 6. Run the server
+---
+
+### Django Basics
+
+#### 1. Go to the src file
 ```bash
-
-
-# Run the server on the port 8001
-python manage.py runserver 0:8001
+cd src
 ```
-Try opening [http://localhost:8001](http://localhost:8001) in the browser.
+
+#### 2. Run the server on the port 8000
+```bash
+python manage.py runserver
+```
+
+Try opening [http://localhost:8001](http://localhost:8000) in the browser.
 Now you are good to go.
+
+#### 3. Create App (which is directory containing a part of the app, for example, login page etc)
+> [!IMPORTANT]  
+> Please be sure that you are in the src folder when you execute the command
+
+```bash
+python manage.py startapp X
+```
