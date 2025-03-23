@@ -9,11 +9,13 @@ This project provides a web-based database for storing and analyzing AI model pe
 ### Prerequisites
 
 #### 1. Install Python
-Install ```python-X```. Follow the steps from the below reference document based on your Operating System.
-Reference: [Python Version X](https://www.python.org/)
+Install ```python-3.12.8```. Follow the steps from the below reference document based on your Operating System.
+
+Reference: [Python Version 3.12.8](https://www.python.org/downloads/release/python-3128/)
 
 #### 2. Install MySQL
 Install ```mysql-X```. Follow the steps form the below reference document based on your Operating System.
+
 Reference: [MySQL Version X](https://www.mysql.com/fr/)
 
 #### 3. Clone git repository
