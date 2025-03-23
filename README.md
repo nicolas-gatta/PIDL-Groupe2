@@ -48,7 +48,7 @@ Now you are good to go.
 
 #### 3. Create App (which is directory containing a part of the app, for example, login page etc)
 > [!IMPORTANT]  
-> Please be sure that you are in the src folder when you execute the command
+> Please be sure that you are in the src folder when you execute the command and replace the X by the name of the folder
 
 ```bash
 python manage.py startapp X
