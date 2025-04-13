@@ -50,14 +50,27 @@ INSERT INTO Optimization VALUES
 
 
 -- Quantization
-INSERT INTO Quantization VALUES (1, 'Post-training', 'INT8', 'Reduced precision for edge deployment', 1);
+INSERT INTO Quantization (quantization_type, target_precision, description, optimization_id) VALUES
+('Post-training', 'INT8', 'Reduced precision for edge deployment', 1);
 
 -- Pruning
-INSERT INTO Pruning VALUES (1, 'Magnitude-based', 0.30, 'Pruned lowest magnitude weights', 2);
+INSERT INTO Pruning (pruning_strategie, pruning_rate, description, optimization_id) VALUES
+('Magnitude-based', 0.30, 'Pruned lowest magnitude weights', 2);
 
 -- Knowledge Distillation
-INSERT INTO knowledgeDistillation VALUES (3, 2.0, 'CrossEntropy', 'Distillation of BERT to a smaller student model', 2, 1, 3);
+INSERT INTO KnowledgeDistillation (softmax_temperature, loss_function, description, model_id, model_id_1, optimization_id) VALUES
+(2.0, 'CrossEntropy', 'Distillation of BERT to a smaller student model', 2, 1, 3);
 
 INSERT INTO Model_Optimization VALUES 
 (1, 1), (1, 2), (2, 3);
 
+-- Model_Task
+INSERT INTO Model_Task (model_id, task_id) VALUES
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 1),
+(5, 2),
+(6, 2),
+(7, 3),
+(8, 3);

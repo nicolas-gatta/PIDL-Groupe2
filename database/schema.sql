@@ -1,5 +1,5 @@
 CREATE TABLE Resource(
-   resource_id INT,
+   resource_id INT AUTO_INCREMENT,
    resource_name VARCHAR(50),
    cpu_type VARCHAR(50),
    memory_gpu INT,
@@ -11,7 +11,7 @@ CREATE TABLE Resource(
 );
 
 CREATE TABLE Optimization(
-   optimization_id INT,
+   optimization_id INT AUTO_INCREMENT,
    name VARCHAR(100),
    optimization_date DATETIME,
    description VARCHAR(100),
@@ -21,21 +21,21 @@ CREATE TABLE Optimization(
 );
 
 CREATE TABLE Role(
-   role_id INT,
+   role_id INT AUTO_INCREMENT,
    role_name VARCHAR(50),
    description VARCHAR(150),
    PRIMARY KEY(role_id)
 );
 
 CREATE TABLE Task(
-   task_id INT,
+   task_id INT AUTO_INCREMENT,
    task_name VARCHAR(50),
    description VARCHAR(100),
    PRIMARY KEY(task_id)
 );
 
 CREATE TABLE _User(
-   user_id INT,
+   user_id INT AUTO_INCREMENT,
    first_name VARCHAR(50),
    last_name VARCHAR(50),
    email VARCHAR(100),
@@ -46,7 +46,7 @@ CREATE TABLE _User(
 );
 
 CREATE TABLE Model(
-   model_id INT,
+   model_id INT AUTO_INCREMENT,
    model_name VARCHAR(100),
    architecture VARCHAR(100),
    parameter_count DECIMAL(6,2),          -- ex: 3.01, 11.13, 25.85
@@ -62,7 +62,7 @@ CREATE TABLE Model(
 );
 
 CREATE TABLE Evaluation(
-   evaluation_id INT,
+   evaluation_id INT AUTO_INCREMENT,
    accaracy DECIMAL(5,4),                 -- ex: 0.8185
    final_loss DECIMAL(4,3),
    latency_ms DECIMAL(6,2),
@@ -82,7 +82,7 @@ CREATE TABLE Evaluation(
 
 
 CREATE TABLE Quantization(
-   quantization_id INT,
+   quantization_id INT AUTO_INCREMENT,
    quantization_type VARCHAR(50),
    target_precision VARCHAR(10),
    description VARCHAR(100),
@@ -93,7 +93,7 @@ CREATE TABLE Quantization(
 );
 
 CREATE TABLE Pruning(
-   pruning_id INT,
+   pruning_id INT AUTO_INCREMENT,
    pruning_strategie VARCHAR(50),
    pruning_rate DECIMAL(3,2),
    description VARCHAR(100),
@@ -103,19 +103,19 @@ CREATE TABLE Pruning(
    FOREIGN KEY(optimization_id) REFERENCES Optimization(optimization_id)
 );
 
-CREATE TABLE knowledgeDistillation(
-   optimization_id INT,
+CREATE TABLE KnowledgeDistillation(
+   knowledgeDistillation_id INT AUTO_INCREMENT,
    softmax_temperature DECIMAL(3,1),
    loss_function VARCHAR(50),
    description VARCHAR(100),
    model_id INT NOT NULL,
    model_id_1 INT NOT NULL,
-   optimization_id_1 INT NOT NULL,
-   PRIMARY KEY(optimization_id),
-   UNIQUE(optimization_id_1),
+   optimization_id INT NOT NULL,
+   PRIMARY KEY(knowledgeDistillation_id),
+   UNIQUE(optimization_id),
    FOREIGN KEY(model_id) REFERENCES Model(model_id),
    FOREIGN KEY(model_id_1) REFERENCES Model(model_id),
-   FOREIGN KEY(optimization_id_1) REFERENCES Optimization(optimization_id)
+   FOREIGN KEY(optimization_id) REFERENCES Optimization(optimization_id)
 );
 
 CREATE TABLE Model_Optimization(

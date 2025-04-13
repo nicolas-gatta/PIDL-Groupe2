@@ -24,12 +24,12 @@ JOIN Resource r ON e.resource_id = r.resource_id;
 
 CREATE OR REPLACE VIEW v_distillation_pairs AS
 SELECT 
-    kd.optimization_id,
+    kd.knowledge_distillation_id,
     m_teacher.model_name AS teacher_model,
     m_student.model_name AS student_model,
     kd.softmax_temperature,
     kd.loss_function
-FROM knowledgeDistillation kd
+FROM KnowledgeDistillation kd
 JOIN Model m_teacher ON kd.model_id_1 = m_teacher.model_id
 JOIN Model m_student ON kd.model_id = m_student.model_id;
 
