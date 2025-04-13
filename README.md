@@ -2,9 +2,18 @@
 This project provides a web-based database for storing and analyzing AI model performance on Edge AI devices. It allows users to compare models based on accuracy, energy consumption, and various optimization parameters (compression, quantization, etc.) to select the best configuration before deployment.
 
 ## Table of contents
+0. [Structure](#structure)
 1. [Prerequisites](#prerequisites)
 2. [Django basic command](#django-basics)
 
+---
+### 🔧 Structure
+
+- `backend/` – Django project (API, business logic, admin interface, endpoints)
+- `database/` – SQL files for MySQL (schema, sample data, views)
+- `frontend/` – GUI interface
+- `mockups/` – UI/UX designs and wireframes
+- `docs/` – Specifications, reports, technical diagrams
 ----
 ### Prerequisites
 
