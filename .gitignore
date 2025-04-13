@@ -169,3 +169,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# Autoriser les fichiers SQL dans le dossier database
+!database/*.sql
+
