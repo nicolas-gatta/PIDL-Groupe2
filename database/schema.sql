@@ -29,8 +29,8 @@ CREATE TABLE `pidl`.`optimization`(
    `name` VARCHAR(100),
    `optimization_date` DATETIME,
    `description` VARCHAR(100),
-   `resource_id` INT NOT NULL,
-   FOREIGN KEY(`resource_id`) REFERENCES `pidl`.`resource`(`resource_id`)
+   `resource_fk` INT NOT NULL,
+   CONSTRAINT `FK_optimization_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`user`(
@@ -39,8 +39,8 @@ CREATE TABLE `pidl`.`user`(
    `last_name` VARCHAR(50),
    `email` VARCHAR(100),
    `password` VARCHAR(100),
-   `role_id` INT NOT NULL,
-   FOREIGN KEY(`role_id`) REFERENCES `pidl`.`role`(`role_id`)
+   `role_fk` INT NOT NULL,
+   CONSTRAINT `FK_user_role` FOREIGN KEY(`role_fk`) REFERENCES `pidl`.`role`(`role_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`model`(
@@ -54,8 +54,8 @@ CREATE TABLE `pidl`.`model`(
    `model_size` DECIMAL(6,2),               -- same name, kept if needed elsewhere
    `creation_date` DATETIME,
    `description` VARCHAR(100),
-   `user_id` INT NOT NULL,
-   FOREIGN KEY(`user_id`) REFERENCES `pidl`.`user`(`user_id`)
+   `user_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`evaluation`(
@@ -70,10 +70,10 @@ CREATE TABLE `pidl`.`evaluation`(
    `map_50` DECIMAL(5,4),                   -- ex: 0.847
    `map_50_95` DECIMAL(5,4),                -- ex: 0.6655
    `evaluation_date` DATETIME,
-   `resource_id` INT NOT NULL,
-   `model_id` INT NOT NULL,
-   FOREIGN KEY(`resource_id`) REFERENCES `pidl`.`resource`(`resource_id`),
-   FOREIGN KEY(`model_id`) REFERENCES `pidl`.`model`(`model_id`)
+   `resource_fk` INT NOT NULL,
+   `model_fk` INT NOT NULL,
+   CONSTRAINT `FK_evaluation_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`),
+   CONSTRAINT `FK_model_resource` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 
@@ -82,8 +82,8 @@ CREATE TABLE `pidl`.`quantization`(
    `quantization_type` VARCHAR(50),
    `target_precision` VARCHAR(10),
    `description` VARCHAR(100),
-   `optimization_id` INT NOT NULL UNIQUE,
-   FOREIGN KEY(`optimization_id`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   `optimization_fk` INT NOT NULL UNIQUE,
+   CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`pruning`(
@@ -91,8 +91,8 @@ CREATE TABLE `pidl`.`pruning`(
    `pruning_strategie` VARCHAR(50),
    `pruning_rate` DECIMAL(3,2),
    `description` VARCHAR(100),
-   `optimization_id` INT NOT NULL UNIQUE,
-   FOREIGN KEY(`optimization_id`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   `optimization_fk` INT NOT NULL UNIQUE,
+   CONSTRAINT `FK_pruning_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`knowledge_distillation`(
@@ -100,26 +100,26 @@ CREATE TABLE `pidl`.`knowledge_distillation`(
    `softmax_temperature` DECIMAL(3,1),
    `loss_function` VARCHAR(50),
    `description` VARCHAR(100),
-   `model_id` INT NOT NULL,
-   `model_id_1` INT NOT NULL,
-   `optimization_id` INT NOT NULL UNIQUE,
-   FOREIGN KEY(`model_id`) REFERENCES `pidl`.`model`(`model_id`),
-   FOREIGN KEY(`model_id_1`) REFERENCES `pidl`.`model`(`model_id`),
-   FOREIGN KEY(`optimization_id`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   `student` INT NOT NULL,
+   `teacher` INT NOT NULL,
+   `optimization_fk` INT NOT NULL UNIQUE,
+   CONSTRAINT `FK_knowledge_teacher_model` FOREIGN KEY(`teacher`) REFERENCES `pidl`.`model`(`model_id`),
+   CONSTRAINT `FK_knowledge_student_model` FOREIGN KEY(`student`) REFERENCES `pidl`.`model`(`model_id`),
+   CONSTRAINT `FK_knowledge_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`model_optimization`(
    `model_optimization_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `model_id` INT NOT NULL,
-   `optimization_id` INT NOT NULL,
-   FOREIGN KEY(`model_id`) REFERENCES `pidl`.`model`(`model_id`),
-   FOREIGN KEY(`optimization_id`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   `model_fk` INT NOT NULL,
+   `optimization_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_optimization_model` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`),
+   CONSTRAINT `FK_model_optimization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`model_task`(
    `model_task_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `model_id` INT NOT NULL,
-   `task_id` INT NOT NULL,
-   FOREIGN KEY(`model_id`) REFERENCES `pidl`.`model`(`model_id`),
-   FOREIGN KEY(`task_id`) REFERENCES `pidl`.`task`(`task_id`)
+   `model_fk` INT NOT NULL,
+   `task_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_task_model` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`),
+   CONSTRAINT `FK_model_task_task` FOREIGN KEY(`task_fk`) REFERENCES `pidl`.`task`(`task_id`)
 )DEFAULT CHARSET = utf8mb4;
