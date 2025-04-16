@@ -16,8 +16,9 @@ INSERT INTO `pidl`.`task` VALUES (2, 'Object Detection', 'Detect and localize ob
 INSERT INTO `pidl`.`task` VALUES (3, 'Text Generation', 'Generate human-like text');
 
 -- Users
-INSERT INTO `pidl`.`user` VALUES (1, 'Alice', 'Dupont', 'alice@example.com', 'pwd123', 3);
-INSERT INTO `pidl`.`user` VALUES (2, 'Bob', 'Ngoma', 'bob@example.com', 'pwd456', 2);
+INSERT INTO `pidl`.`user` VALUES (1, 'Alice', 'Dupont', 'alice@example.com', 'pbkdf2_sha256$36000$uVE4Tv7auhN$A1Guwes3MP20GJp2WrUbIR+NENbgzLYIPrjo6PwSwHk=', 3);
+INSERT INTO `pidl`.`user` VALUES (2, 'Bob', 'Ngoma', 'bob@example.com', 'pbkdf2_sha256$36000$uVE4Tv7auhN$A1Guwes3MP20GJp2WrUbIR+NENbgzLYIPrjo6PwSwHk=', 2);
+INSERT INTO `pidl`.`user` VALUES (3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$36000$uVE4Tv7auhN$A1Guwes3MP20GJp2WrUbIR+NENbgzLYIPrjo6PwSwHk=', 1);
 
 -- Models (8 models based on 3 sizes and 4 precisions)
 INSERT INTO `pidl`.`model` VALUES 
@@ -50,27 +51,27 @@ INSERT INTO `pidl`.`optimization` VALUES
 
 
 -- Quantization
-INSERT INTO `pidl`.`quantization` (quantization_type, target_precision, description, optimization_id) VALUES
-('Post-training', 'INT8', 'Reduced precision for edge deployment', 1);
+INSERT INTO `pidl`.`quantization` VALUES
+(1, 'Post-training', 'INT8', 'Reduced precision for edge deployment', 1);
 
 -- Pruning
-INSERT INTO `pidl`.`pruning` (pruning_strategie, pruning_rate, description, optimization_id) VALUES
-('Magnitude-based', 0.30, 'Pruned lowest magnitude weights', 2);
+INSERT INTO `pidl`.`pruning` VALUES
+(1, 'Magnitude-based', 0.30, 'Pruned lowest magnitude weights', 2);
 
 -- Knowledge Distillation
-INSERT INTO `pidl`.`knowledge_distillation` (softmax_temperature, loss_function, description, model_id, model_id_1, optimization_id) VALUES
-(2.0, 'CrossEntropy', 'Distillation of BERT to a smaller student model', 2, 1, 3);
+INSERT INTO `pidl`.`knowledge_distillation` VALUES
+(1, 2.0, 'CrossEntropy', 'Distillation of BERT to a smaller student model', 2, 1, 3);
 
 INSERT INTO `pidl`.`model_optimization` VALUES 
-(1, 1), (1, 2), (2, 3);
+(1, 1, 1), (2, 1, 2), (3, 2, 3);
 
 -- Model_Task
-INSERT INTO `pidl`.`model_task` (model_id, task_id) VALUES
-(1, 1),
-(2, 1),
-(3, 1),
-(4, 1),
-(5, 2),
-(6, 2),
-(7, 3),
-(8, 3);
+INSERT INTO `pidl`.`model_task` VALUES
+(1, 1, 1),
+(2, 2, 1),
+(3, 3, 1),
+(4, 4, 1),
+(5, 5, 2),
+(6, 6, 2),
+(7, 7, 3),
+(8, 8, 3);
