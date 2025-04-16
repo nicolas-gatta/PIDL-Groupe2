@@ -4,8 +4,10 @@ This project provides a web-based database for storing and analyzing AI model pe
 ## Table of contents
 1. [Structure](#structure)
 2. [Prerequisites](#prerequisites)
-3. [Django basic command](#django-basics)
-3. [React basic command](#react-basics)
+3. [Use the project locally](#use-locally)
+4. [Use the project online](#use-online)
+5. [Django basic command](#django-basics)
+6. [React basic command](#react-basics)
 
 ---
 ### 🔧 Structure
@@ -35,13 +37,48 @@ Reference: [MySQL Version 8.0.41](https://dev.mysql.com/downloads/installer/)
 git clone "https://github.com/nicolas-gatta/PIDL-Groupe2.git"
 ```
 
-#### 4. Install requirements
+#### 4. Install requirements backend
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
-#### 5. Download .env file
+#### 5. Install requirements frontend
+```bash
+cd frontend
+npm install
+```
+
+#### 6. Download .env file
 Need to be done
+
+---
+### Use Locally
+
+#### Start the Django Server and React in separate terminal
+
+In one terminal:
+
+```bash
+cd backend
+python manage.py runserver
+```
+
+In another terminal:
+
+```bash
+cd frontend
+npm run web
+```
+- It will start Django Server at [http://localhost:8000](http://localhost:8000)
+- It will start React Server at [http://localhost:8081](http://localhost:8081)
+
+> 💡 You can stop both by pressing `Ctrl + C`.
+
+---
+
+### Use Online
+
 
 ---
 
