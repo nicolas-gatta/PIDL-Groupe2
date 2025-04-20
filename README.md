@@ -61,6 +61,7 @@ In one terminal:
 
 ```bash
 cd backend
+python manage.py migrate (Just once the first time your run the app)
 python manage.py runserver
 ```
 
@@ -74,6 +75,9 @@ npm run web
 - It will start React Server at [http://localhost:8081](http://localhost:8081)
 
 > 💡 You can stop both by pressing `Ctrl + C`.
+
+> [!IMPORTANT]  
+> Please be sure that you create the mysql database using the [Database script](https://github.com/nicolas-gatta/PIDL-Groupe2/blob/main/database/full_script.sql)
 
 ---
 
