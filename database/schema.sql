@@ -30,18 +30,22 @@ CREATE TABLE `pidl`.`optimization`(
    `optimization_date` DATETIME,
    `description` VARCHAR(100),
    `resource_fk` INT NOT NULL,
-   CONSTRAINT `FK_optimization_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`)
+   CONSTRAINT `FK_optimization_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE `pidl`.`user`(
+CREATE TABLE `pidl`.`user` (
    `user_id` INT PRIMARY KEY AUTO_INCREMENT,
    `first_name` VARCHAR(50),
    `last_name` VARCHAR(50),
-   `email` VARCHAR(100),
-   `password` VARCHAR(100),
+   `email` VARCHAR(100) NOT NULL UNIQUE,     -- Required for Django
+   `password` VARCHAR(256) NOT NULL,         -- Required for Django
+   `is_active` TINYINT(1) DEFAULT 1,         -- Required for Django
+   `is_staff` TINYINT(1) DEFAULT 0,          -- Required for Django
+   `is_superuser` TINYINT(1) DEFAULT 0,      -- Required for Django
+   `last_login` DATETIME DEFAULT NULL,       -- Required for Django
    `role_fk` INT NOT NULL,
-   CONSTRAINT `FK_user_role` FOREIGN KEY(`role_fk`) REFERENCES `pidl`.`role`(`role_id`)
-)DEFAULT CHARSET = utf8mb4;
+   CONSTRAINT `FK_user_role` FOREIGN KEY (`role_fk`) REFERENCES `pidl`.`role` (`role_id`) ON DELETE CASCADE
+) DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`model`(
    `model_id` INT PRIMARY KEY AUTO_INCREMENT,
@@ -55,7 +59,7 @@ CREATE TABLE `pidl`.`model`(
    `creation_date` DATETIME,
    `description` VARCHAR(100),
    `user_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`)
+   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`evaluation`(
@@ -72,8 +76,8 @@ CREATE TABLE `pidl`.`evaluation`(
    `evaluation_date` DATETIME,
    `resource_fk` INT NOT NULL,
    `model_fk` INT NOT NULL,
-   CONSTRAINT `FK_evaluation_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`),
-   CONSTRAINT `FK_model_resource` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`)
+   CONSTRAINT `FK_evaluation_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_resource` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 
@@ -83,7 +87,7 @@ CREATE TABLE `pidl`.`quantization`(
    `target_precision` VARCHAR(10),
    `description` VARCHAR(100),
    `optimization_fk` INT NOT NULL UNIQUE,
-   CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`pruning`(
@@ -92,7 +96,7 @@ CREATE TABLE `pidl`.`pruning`(
    `pruning_rate` DECIMAL(3,2),
    `description` VARCHAR(100),
    `optimization_fk` INT NOT NULL UNIQUE,
-   CONSTRAINT `FK_pruning_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   CONSTRAINT `FK_pruning_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`knowledge_distillation`(
@@ -103,23 +107,23 @@ CREATE TABLE `pidl`.`knowledge_distillation`(
    `student` INT NOT NULL,
    `teacher` INT NOT NULL,
    `optimization_fk` INT NOT NULL UNIQUE,
-   CONSTRAINT `FK_knowledge_teacher_model` FOREIGN KEY(`teacher`) REFERENCES `pidl`.`model`(`model_id`),
-   CONSTRAINT `FK_knowledge_student_model` FOREIGN KEY(`student`) REFERENCES `pidl`.`model`(`model_id`),
-   CONSTRAINT `FK_knowledge_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   CONSTRAINT `FK_knowledge_teacher_model` FOREIGN KEY(`teacher`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_knowledge_student_model` FOREIGN KEY(`student`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_knowledge_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`model_optimization`(
    `model_optimization_id` INT PRIMARY KEY AUTO_INCREMENT,
    `model_fk` INT NOT NULL,
    `optimization_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_optimization_model` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`),
-   CONSTRAINT `FK_model_optimization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`)
+   CONSTRAINT `FK_model_optimization_model` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_optimization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`model_task`(
    `model_task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `model_fk` INT NOT NULL,
    `task_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_task_model` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`),
-   CONSTRAINT `FK_model_task_task` FOREIGN KEY(`task_fk`) REFERENCES `pidl`.`task`(`task_id`)
+   CONSTRAINT `FK_model_task_model` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_task_task` FOREIGN KEY(`task_fk`) REFERENCES `pidl`.`task`(`task_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
