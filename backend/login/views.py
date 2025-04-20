@@ -1,37 +1,30 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth import get_user_model
-import json
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth import authenticate
+
+from login.serializers import CustomUserSerializer
 
 # Create your views here.
 
-User = get_user_model()
-
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def login_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            email = data.get('email')
-            password = data.get('password')
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        user = authenticate(request, email=email, password=password)
-        if user is not None:
-            login(request, user)
-            return JsonResponse({'message': 'Login successful', 'user_id': user.user_id})
-        else:
-            return JsonResponse({'error': 'Invalid credentials'}, status=401)
-
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+    username = request.data.get("username")
+    password = request.data.get("password")
+    
+    user = authenticate(username=username, password=password)
+    if user:
+        token, _ = Token.objects.get_or_create(user=user)
+        serializer = CustomUserSerializer(instance = user)
+        return Response({'token': token.key, "user": serializer.data})
+    else:
+        return Response({"error": "Invalid credentials"}, status=400)
 
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def logout_view(request):
-    if request.method == 'POST':
-        logout(request)
-        return JsonResponse({'message': 'Logged out successfully'})
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+    request.user.auth_token.delete()
+    return Response({"message": "Logged out successfully"})

@@ -24,9 +24,9 @@ VALUES
 -- Users
 INSERT INTO `pidl`.`user` (`user_id`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_superuser`, `role_fk`) 
 VALUES 
-(1, 'Alice', 'Dupont', 'alice@example.com', 'pbkdf2_sha256$36000$uVE4Tv7auhN$A1Guwes3MP20GJp2WrUbIR+NENbgzLYIPrjo6PwSwHk=', FALSE, FALSE, 3),
-(2, 'Bob', 'Ngoma', 'bob@example.com', 'pbkdf2_sha256$36000$uVE4Tv7auhN$A1Guwes3MP20GJp2WrUbIR+NENbgzLYIPrjo6PwSwHk=', FALSE, FALSE, 2),
-(3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$36000$uVE4Tv7auhN$A1Guwes3MP20GJp2WrUbIR+NENbgzLYIPrjo6PwSwHk=', TRUE, TRUE, 1);
+(1, 'Alice', 'Dupont', 'alice@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', FALSE, FALSE, 3),
+(2, 'Bob', 'Ngoma', 'bob@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', FALSE, FALSE, 2),
+(3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', TRUE, TRUE, 1);
 
 -- Models (8 models based on 3 sizes and 4 precisions)
 INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `creation_date`,`description`,`user_fk`)
