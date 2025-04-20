@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'login.CustomUser'
+
 
 # Application definition
 
@@ -37,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "login.apps.LoginConfig",
+    "aimodel.apps.AimodelConfig"
 ]
 
 MIDDLEWARE = [
@@ -116,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "UTC+2"
 
 USE_I18N = True
 
