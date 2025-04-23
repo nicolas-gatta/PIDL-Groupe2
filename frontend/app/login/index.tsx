@@ -1,3 +1,5 @@
+// frontend/app/login/index.tsx
+
 import React, { useState } from 'react'
 import {
   View,
@@ -6,71 +8,71 @@ import {
   TouchableOpacity,
   StyleSheet
 } from 'react-native'
-import { useRouter } from 'expo-router'
-import Icon from 'react-native-vector-icons/Ionicons'
 import axios from 'axios'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { BACKEND_URL } from '../config'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState('')  // on met l’email ici
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [error, setError]       = useState('')
 
   const handleLogin = async () => {
+    setError('')
     if (!username || !password) {
-      setError('Veuillez remplir tous les champs')
+      setError('Merci de remplir tous les champs')
       return
     }
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/login/`, {
-        username,
-        password,
-      })
-
-      if (response.data?.token) {
-        // Stocker le token dans AsyncStorage
-        await AsyncStorage.setItem('auth_token', response.data.token)
-        router.replace('/')
+      const { data } = await axios.post(
+        `${BACKEND_URL}/auth/login/`,
+        { username, password },
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+      if (data.token) {
+        // Ici : connexion validée → affiche simplement un message de succès
+        setError('Succès : connecté !')
       } else {
-        setError("Réponse inattendue du serveur")
+        setError('Réponse inattendue du serveur')
       }
-    } catch (err) {
-      setError("Nom d'utilisateur ou mot de passe invalide")
+    } catch {
+      setError('Identifiants invalides')
     }
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.bgCircle} />
-      <View style={styles.formBox}>
-        <Icon name="log-in-outline" size={64} color="white" />
 
+      <View style={styles.formBox}>
         <TextInput
           style={styles.input}
-          placeholder="USERNAME"
-          placeholderTextColor="#FFFFFFAA"
+          placeholder="EMAIL"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          autoCapitalize="none"
+          keyboardType="email-address"
           value={username}
           onChangeText={setUsername}
         />
+
         <TextInput
           style={styles.input}
-          placeholder="PASSWORD"
-          placeholderTextColor="#FFFFFFAA"
+          placeholder="MOT DE PASSE"
+          placeholderTextColor="rgba(255,255,255,0.6)"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
 
-        {error !== '' && <Text style={styles.error}>{error}</Text>}
+        {!!error && (
+          <Text style={error.startsWith('Succès') ? styles.success : styles.error}>
+            {error}
+          </Text>
+        )}
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>LOGIN</Text>
         </TouchableOpacity>
-
-        <Text style={styles.forgot}>🔓 Mot de passe oublié ?</Text>
       </View>
     </View>
   )
@@ -96,13 +98,12 @@ const styles = StyleSheet.create({
   formBox: {
     width: '80%',
     maxWidth: 400,
-    backgroundColor: 'transparent',
     padding: 24,
     alignItems: 'center',
   },
   input: {
     width: '100%',
-    borderColor: '#ffffffaa',
+    borderColor: 'rgba(255,255,255,0.6)',
     borderWidth: 1,
     borderRadius: 6,
     paddingVertical: 10,
@@ -113,27 +114,24 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 8,
-    elevation: 2,
   },
   buttonText: {
     color: '#2148C0',
-    fontWeight: 'bold',
     fontSize: 16,
-  },
-  forgot: {
-    marginTop: 16,
-    color: '#FFFFFF',
-    opacity: 0.8,
-    fontSize: 14,
+    fontWeight: 'bold',
   },
   error: {
-    color: '#ffdddd',
-    fontSize: 13,
+    color: '#FFCCCC',
+    marginBottom: 8,
+  },
+  success: {
+    color: '#CCFFCC',
     marginBottom: 8,
   },
 })
+
