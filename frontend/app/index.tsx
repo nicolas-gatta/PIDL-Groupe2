@@ -1,16 +1,26 @@
-import { useEffect } from 'react'
-import { useRouter, useNavigationContainerRef } from 'expo-router'
-import { useRootNavigationState } from 'expo-router'
+// app/index.tsx
+import { useRouter } from 'expo-router';
+import { View, Button, Text } from 'react-native';
 
 export default function Index() {
-  const router = useRouter()
-  const navigationState = useRootNavigationState()
+    const router = useRouter();
 
-  useEffect(() => {
-    if (!navigationState?.key) return
+    // Fonction de redirection vers login
+    const goToLogin = () => {
+        router.push('/login');
+    };
 
-    router.replace('/login')
-  }, [navigationState])
+    // Fonction de redirection vers dashboard
+    const goToDashboard = () => {
+        router.push('/dashboard');
+    };
 
-  return null
+    return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text>Choisissez une page :</Text>
+
+            <Button title="Aller au Login" onPress={goToLogin} />
+            <Button title="Aller au Dashboard" onPress={goToDashboard} />
+        </View>
+    );
 }
