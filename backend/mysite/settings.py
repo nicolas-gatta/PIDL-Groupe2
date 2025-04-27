@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-r#_o3+c)=dfhcfy_gj6i6ugl&#9nn-8@8u&+ws)39^w52($bg(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.8']
 
 AUTH_USER_MODEL = 'login.CustomUser'
 
@@ -41,11 +41,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "login.apps.LoginConfig",
     "aimodel.apps.AimodelConfig",
+    "corsheaders",
     "rest_framework",
     "rest_framework.authtoken"
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -54,6 +57,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "mysite.urls"
 
