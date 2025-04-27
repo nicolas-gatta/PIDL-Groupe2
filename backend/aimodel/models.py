@@ -131,3 +131,24 @@ class Quantization(models.Model):
     class Meta:
         managed = False
         db_table = 'quantization'
+        
+
+class BasicDataModel(models.Model):
+    
+    id = models.AutoField(primary_key=True)
+    model_name = models.CharField(max_length=50, blank=False, null=False)
+    architecture = models.CharField(max_length=50, blank=False, null=False)
+    model_size = models.CharField(max_length=50, blank=False, null=False)
+    precision = models.CharField(max_length=50, blank=False, null=False)
+    layers = models.IntegerField(blank=False, null=False)
+    parameters_m = models.FloatField(blank=False, null=False)
+    flops_b = models.FloatField(blank=False, null=False)
+    fps_gpu = models.FloatField(blank=False, null=False)
+    avg_emissions_gco2eq = models.FloatField(blank=False, null=False)
+    avg_energy_mwh = models.FloatField(blank=False, null=False)
+    map_50 = models.FloatField(blank=False, null=False)
+    map_50_95 = models.FloatField(blank=False, null=False)
+    
+    class Meta:
+        managed = False
+        db_table = "v_model_energy_performance"

@@ -166,7 +166,10 @@ CREATE OR REPLACE VIEW `pidl`.`v_distillation_pairs` AS
 -- 3. Vue : performances énergétiques et précisions de modèles (cf enoncé du projet)
 CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
     SELECT 
-        m.`model_size_label` AS model_size,
+        m.`model_id` AS `id`,
+        m.`model_name` AS `model_name`,
+        m.`architecture` AS `architecture`,
+        m.`model_size_label` AS `model_size`,
         
         CASE
             WHEN m.`model_name` LIKE '%base%' THEN 'base_model'
@@ -176,14 +179,14 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
             ELSE 'unknown'
         END AS `precision`,
 
-        m.`layer_count` AS layers,
-        m.`parameter_count` AS parameters_m,
-        m.`flops_billion` AS flops_b,
-        e.`fps_gpu` AS fps_gpu,
-        e.`emissions_gco2eq` AS avg_emissions_gco2eq,
-        e.`energy_consumption_mwh` AS avg_energy_mwh,
-        e.`map_50` AS map_50,
-        e.`map_50_95` AS map_50_95
+        m.`layer_count` AS `layers`,
+        m.`parameter_count` AS `parameters_m`,
+        m.`flops_billion` AS `flops_b`,
+        e.`fps_gpu` AS `fps_gpu`,
+        e.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
+        e.`energy_consumption_mwh` AS `avg_energy_mwh`,
+        e.`map_50` AS `map_50`,
+        e.`map_50_95` AS `map_50_95`
 
     FROM `pidl`.`model` AS m
     JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`;
