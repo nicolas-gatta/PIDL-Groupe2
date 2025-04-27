@@ -6,14 +6,14 @@ import { useNavigation } from '@react-navigation/native';
 const Dashboard = () => {
     const navigation = useNavigation();
 
-    // Données d'exemple pour les modèles IA
+    // DonnÃ©es d'exemple pour les modÃ¨les IA
     const data = [
         {
             id: 1,
             modelName: 'GPT-4',
-            size: 'Très grand',
+            size: 'TrÃ¨s grand',
             type: 'GPT-4',
-            task: 'Génération de texte',
+            task: 'GÃ©nÃ©ration de texte',
             accuracy: '92%',
             finalLoss: '0.02',
             numLayers: 48,
@@ -51,7 +51,7 @@ const Dashboard = () => {
             modelName: 'Llama',
             size: 'Grand',
             type: 'Llama',
-            task: 'Détection',
+            task: 'DÃ©tection',
             accuracy: '91%',
             finalLoss: '0.03',
             numLayers: 32,
@@ -67,14 +67,14 @@ const Dashboard = () => {
         }
     ];
 
-    // États pour les filtres
+    // ï¿½tats pour les filtres
     const [selectedTask, setSelectedTask] = useState('');
     const [selectedType, setSelectedType] = useState('');
     const [selectedEmissionRange, setSelectedEmissionRange] = useState('');
     const [selectedEnergyConsumptionRange, setSelectedEnergyConsumptionRange] = useState('');
     const [selectedTrainingTimeRange, setSelectedTrainingTimeRange] = useState('');
 
-    // Fonction pour filtrer les données en fonction des critères sélectionnés
+    // Fonction pour filtrer les donnï¿½es en fonction des critï¿½res sï¿½lectionnï¿½s
     const filteredData = data.filter(item => {
         return (
             (selectedTask ? item.task === selectedTask : true) &&
@@ -106,23 +106,23 @@ const Dashboard = () => {
                 <Text style={styles.email}>{userEmail}</Text>
 
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                    <Text style={styles.logoutButtonText}>Déconnexion</Text>
+                    <Text style={styles.logoutButtonText}>DÃ©connexion</Text>
                 </TouchableOpacity>
 
                 {/* Filtres */}
-                <Text style={styles.filterLabel}>Filtrer par Tâche</Text>
+                <Text style={styles.filterLabel}>Filtrer par TÃ¢che</Text>
                 <Picker
                     selectedValue={selectedTask}
                     onValueChange={(itemValue) => setSelectedTask(itemValue)}
                     style={styles.picker}
                 >
                     <Picker.Item label="Tous" value="" />
-                    <Picker.Item label="Génération de texte" value="Génération de texte" />
+                    <Picker.Item label="GÃ©nÃ©ration de texte" value="GÃ©nÃ©ration de texte" />
                     <Picker.Item label="Classification" value="Classification" />
-                    <Picker.Item label="Détection" value="Détection" />
+                    <Picker.Item label="DÃ©tection" value="DÃ©tection" />
                 </Picker>
 
-                <Text style={styles.filterLabel}>Filtrer par Type de Modèle</Text>
+                <Text style={styles.filterLabel}>Filtrer par Type de ModÃ¨le</Text>
                 <Picker
                     selectedValue={selectedType}
                     onValueChange={(itemValue) => setSelectedType(itemValue)}
@@ -134,7 +134,7 @@ const Dashboard = () => {
                     <Picker.Item label="Llama" value="Llama" />
                 </Picker>
 
-                <Text style={styles.filterLabel}>Filtrer par Tranche d’Émission CO2</Text>
+                <Text style={styles.filterLabel}>Filtrer par Tranche d'Ã©mission CO2</Text>
                 <Picker
                     selectedValue={selectedEmissionRange}
                     onValueChange={(itemValue) => setSelectedEmissionRange(itemValue)}
@@ -145,7 +145,7 @@ const Dashboard = () => {
                     <Picker.Item label="0.5-1 kg" value="1 kg" />
                 </Picker>
 
-                <Text style={styles.filterLabel}>Filtrer par Tranche de Consommation Énergétique</Text>
+                <Text style={styles.filterLabel}>Filtrer par Tranche de Consommation Ã©nergÃ©tique</Text>
                 <Picker
                     selectedValue={selectedEnergyConsumptionRange}
                     onValueChange={(itemValue) => setSelectedEnergyConsumptionRange(itemValue)}
@@ -156,7 +156,7 @@ const Dashboard = () => {
                     <Picker.Item label="100-200 kWh" value="200 kWh" />
                 </Picker>
 
-                <Text style={styles.filterLabel}>Filtrer par Temps d’Entraînement</Text>
+                <Text style={styles.filterLabel}>Filtrer par Temps d'EntraÃ®nement</Text>
                 <Picker
                     selectedValue={selectedTrainingTimeRange}
                     onValueChange={(itemValue) => setSelectedTrainingTimeRange(itemValue)}
@@ -170,27 +170,27 @@ const Dashboard = () => {
 
             {/* Main Content */}
             <View style={styles.mainContent}>
-                <Text style={styles.text}>Gestion des modèles IA</Text>
+                <Text style={styles.text}>Gestion des modÃ¨les IA</Text>
 
                 <View style={styles.tableContainer}>
                     <ScrollView horizontal={true}>
                         <View style={styles.table}>
                             <View style={styles.tableRow}>
-                                <Text style={styles.tableHeaderCell}>Nom du Modèle</Text>
+                                <Text style={styles.tableHeaderCell}>Nom du ModÃ¨le</Text>
                                 <Text style={styles.tableHeaderCell}>Taille</Text>
                                 <Text style={styles.tableHeaderCell}>Type</Text>
-                                <Text style={styles.tableHeaderCell}>Tâche</Text>
-                                <Text style={styles.tableHeaderCell}>Précision</Text>
+                                <Text style={styles.tableHeaderCell}>TÃ¢che</Text>
+                                <Text style={styles.tableHeaderCell}>PrÃ©cision</Text>
                                 <Text style={styles.tableHeaderCell}>Perte Finale</Text>
                                 <Text style={styles.tableHeaderCell}>Nombre de Couches</Text>
-                                <Text style={styles.tableHeaderCell}>Paramètres</Text>
+                                <Text style={styles.tableHeaderCell}>ParamÃ¨tres</Text>
                                 <Text style={styles.tableHeaderCell}>Flops</Text>
                                 <Text style={styles.tableHeaderCell}>FPS</Text>
-                                <Text style={styles.tableHeaderCell}>Émission CO2</Text>
-                                <Text style={styles.tableHeaderCell}>Consommation Énergie</Text>
-                                <Text style={styles.tableHeaderCell}>Précision moyenne (mAP 0.5)</Text>
-                                <Text style={styles.tableHeaderCell}>Précision moyenne (mAP 0.5 -> 0.95)</Text>
-                                <Text style={styles.tableHeaderCell}>Temps Entraînement</Text>
+                                <Text style={styles.tableHeaderCell}>Ã©mission CO2</Text>
+                                <Text style={styles.tableHeaderCell}>Consommation Ã©nergie</Text>
+                                <Text style={styles.tableHeaderCell}>PrÃ©cision moyenne (mAP 0.5)</Text>
+                                <Text style={styles.tableHeaderCell}>PrÃ©cision moyenne (mAP 0.5 -> 0.95)</Text>
+                                <Text style={styles.tableHeaderCell}>Temps EntraÃ®nement</Text>
                             </View>
 
                             <FlatList
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#0056b3',
     },
     logoutButton: {
-        backgroundColor: '#ff4444', // Rouge pour le bouton de déconnexion
+        backgroundColor: '#ff4444', // Rouge pour le bouton de dï¿½connexion
         padding: 10,
         borderRadius: 5,
         marginTop: 20,
