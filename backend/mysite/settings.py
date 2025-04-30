@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     "aimodel",
     "corsheaders",
     "rest_framework",
-    "rest_framework.authtoken"
+    "rest_framework.authtoken",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -65,7 +66,7 @@ ROOT_URLCONF = "mysite.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -91,8 +92,11 @@ DATABASES = {
         "NAME": "pidl",
         "USER": "root",
         "PASSWORD": "1234",
-        "HOST": "127.0.0.1",
-        "PORT": "3306"
+        "HOST": "localhost",
+        "PORT": "3306",
+        "OPTIONS": {
+            "unix_socket": "/tmp/mysql.sock",
+        }
     }
 
 
@@ -151,5 +155,12 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Gestion de Modèles IA',
+    'DESCRIPTION': 'Documentation de l\'API pour l’inscription, la connexion, les modèles IA, etc.',
+    'VERSION': '1.0.0',
 }

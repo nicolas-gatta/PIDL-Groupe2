@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test - Inscription</title>
+</head>
+<body>
+    <h2>Formulaire d'inscription</h2>
+    <form method="post" action="/auth/register/">
+        {% csrf_token %}
+        <label>Email :</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <label>Mot de passe :</label><br>
+        <input type="password" name="password" required><br><br>
+
+        <label>Prénom :</label><br>
+        <input type="text" name="first_name"><br><br>
+
+        <label>Nom :</label><br>
+        <input type="text" name="last_name"><br><br>
+
+        <input type="submit" value="S'inscrire">
+    </form>
+</body>
+</html>
