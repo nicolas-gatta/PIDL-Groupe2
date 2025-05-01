@@ -22,8 +22,6 @@ class LoginInputSerializer(serializers.Serializer):
         required=True, write_only=True, help_text="Mot de passe"
     )
 
-from rest_framework import serializers
-
 class RegisterInputSerializer(serializers.Serializer):
     email = serializers.EmailField(
         required=True, help_text="Adresse email de l'utilisateur"

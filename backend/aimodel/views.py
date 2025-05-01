@@ -1,71 +1,69 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, filters as drf_filters
 from .models import *
 from .serializers import *
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import *  
 
-# Resource
+class BaseModelViewSet(viewsets.ModelViewSet):
+    filter_backends = [DjangoFilterBackend, drf_filters.OrderingFilter, drf_filters.SearchFilter]
 
-class ResourceViewSet(viewsets.ModelViewSet):
+    def get_queryset(self):
+        return self.queryset.all()
+
+class ResourceViewSet(BaseModelViewSet):
     queryset = Resource.objects.all()
+    filterset_class = ResourceFilter
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return ResourceListSerializer
-        return ResourceDetailSerializer
+        return ResourceListSerializer if self.action == 'list' else ResourceDetailSerializer
 
-# Task
-
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(BaseModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    filterset_class = TaskFilter
 
-# Model
-
-class ModelViewSet(viewsets.ModelViewSet):
+class ModelViewSet(BaseModelViewSet):
     queryset = Model.objects.all()
+    filterset_class = ModelFilter
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return ModelListSerializer
-        return ModelDetailSerializer
+        return ModelListSerializer if self.action == 'list' else ModelDetailSerializer
 
-# Evaluation
-
-class EvaluationViewSet(viewsets.ModelViewSet):
+class EvaluationViewSet(BaseModelViewSet):
     queryset = Evaluation.objects.all()
+    filterset_class = EvaluationFilter
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return EvaluationListSerializer
-        return EvaluationDetailSerializer
+        return EvaluationListSerializer if self.action == 'list' else EvaluationDetailSerializer
 
-# Optimization
-
-class OptimizationViewSet(viewsets.ModelViewSet):
+class OptimizationViewSet(BaseModelViewSet):
     queryset = Optimization.objects.all()
+    filterset_class = OptimizationFilter
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return OptimizationListSerializer
-        return OptimizationDetailSerializer
+        return OptimizationListSerializer if self.action == 'list' else OptimizationDetailSerializer
 
-# Les autres modèles simples
-
-class KnowledgeDistillationViewSet(viewsets.ModelViewSet):
+class KnowledgeDistillationViewSet(BaseModelViewSet):
     queryset = KnowledgeDistillation.objects.all()
     serializer_class = KnowledgeDistillationSerializer
+    filterset_class = KnowledgeDistillationFilter
 
-class PruningViewSet(viewsets.ModelViewSet):
+class PruningViewSet(BaseModelViewSet):
     queryset = Pruning.objects.all()
     serializer_class = PruningSerializer
+    filterset_class = PruningFilter
 
-class QuantizationViewSet(viewsets.ModelViewSet):
+class QuantizationViewSet(BaseModelViewSet):
     queryset = Quantization.objects.all()
     serializer_class = QuantizationSerializer
+    filterset_class = QuantizationFilter
 
-class ModelOptimizationViewSet(viewsets.ModelViewSet):
+class ModelOptimizationViewSet(BaseModelViewSet):
     queryset = ModelOptimization.objects.all()
     serializer_class = ModelOptimizationSerializer
+    filterset_class = ModelOptimizationFilter
 
-class ModelTaskViewSet(viewsets.ModelViewSet):
+class ModelTaskViewSet(BaseModelViewSet):
     queryset = ModelTask.objects.all()
     serializer_class = ModelTaskSerializer
+    filterset_class = ModelTaskFilter

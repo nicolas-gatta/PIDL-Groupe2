@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from login.serializers import CustomUserSerializer  # si tu veux afficher l'utilisateur lié
+from login.serializers import CustomUserSerializer  # pour afficher l'utilisateur lié
 
 
 # RESOURCE
