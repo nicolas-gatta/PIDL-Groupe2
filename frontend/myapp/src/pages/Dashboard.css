@@ -1,0 +1,105 @@
+/* Dashboard.css */
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.toggle-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background-color: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+    .sidebar .profile {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+.profile-image {
+    width: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.logout-button {
+    background-color: #e74c3c;
+    border: none;
+    padding: 10px;
+    color: white;
+    margin-bottom: 20px;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.filter-label {
+    margin-top: 15px;
+    display: block;
+    font-weight: bold;
+}
+
+.picker {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+.slider-group {
+    margin-bottom: 15px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px;
+    background-color: #f4f4f4;
+    overflow-y: auto;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+th {
+    background-color: #34495e;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        padding: 10px;
+    }
+}
