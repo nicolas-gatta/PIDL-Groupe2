@@ -60,8 +60,8 @@ def register_view(request):
         return Response({"error": "Email et mot de passe requis."}, status = status.HTTP_400_BAD_REQUEST) 
     
     try:
-        # rôle par défaut : student (id = 2)
-        default_role = Role.objects.get(role_id = 2)
+        # rôle par défaut : student (id = 3)
+        default_role = Role.objects.get(role_id = 3)
 
         user = CustomUser.objects.create_user(
             email =  email,

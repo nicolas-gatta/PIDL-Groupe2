@@ -29,6 +29,7 @@ class ModelViewSet(BaseModelViewSet):
     def get_serializer_class(self):
         return ModelListSerializer if self.action == 'list' else ModelDetailSerializer
 
+
 class EvaluationViewSet(BaseModelViewSet):
     queryset = Evaluation.objects.all()
     filterset_class = EvaluationFilter
