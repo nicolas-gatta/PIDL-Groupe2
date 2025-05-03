@@ -57,7 +57,7 @@ class Model(models.Model):
         
 class Evaluation(models.Model):
     evaluation_id = models.AutoField(primary_key=True)
-    accaracy = models.DecimalField(max_digits=5, decimal_places=4, blank=True, null=True)
+    accuracy = models.DecimalField(max_digits=5, decimal_places=4, blank=True, null=True)
     final_loss = models.DecimalField(max_digits=4, decimal_places=3, blank=True, null=True)
     latency_ms = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     execution_time_ms = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
