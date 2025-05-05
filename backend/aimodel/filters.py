@@ -1,0 +1,30 @@
+import django_filters
+from .models import BasicDataModel, ModelTask, Task
+
+class BasicDataFilter(django_filters.FilterSet):
+    task = django_filters.CharFilter(method='filter_by_task')
+    architecture = django_filters.CharFilter(lookup_expr='icontains')
+    precision = django_filters.CharFilter(lookup_expr='iexact')
+    model_size_label = django_filters.CharFilter(lookup_expr='iexact')
+    model_size_min = django_filters.NumberFilter(field_name='model_size', lookup_expr='gte')
+    model_size_max = django_filters.NumberFilter(field_name='model_size', lookup_expr='lte')
+    emissions_min = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='gte')
+    emissions_max = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='lte')
+    energy_min = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='gte')
+    energy_max = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='lte')
+    max_training_time = django_filters.NumberFilter(field_name='training_time', lookup_expr='lte')
+    creator = django_filters.CharFilter(lookup_expr='icontains')
+    
+    class Meta:
+        model = BasicDataModel
+        fields = []
+        
+    def filter_by_task(self, queryset, name, value):
+        
+        task_names = [v.strip() for v in value.split(',') if v.strip()]
+        
+        task_ids = Task.objects.filter(task_name__in=task_names).values_list('task_id', flat=True)
+        
+        model_ids = ModelTask.objects.filter(task_fk_id__in=task_ids).values_list('model_fk_id', flat=True)
+
+        return queryset.filter(id__in=model_ids)
