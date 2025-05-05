@@ -62,6 +62,7 @@ CREATE TABLE `pidl`.`model`(
    `model_size_label` VARCHAR(1),           -- ex: 'n', 's', 'm'
    `flops_billion` DECIMAL(6,2),            -- FLOPS in billions
    `model_size` DECIMAL(6,2),               -- same name, kept if needed elsewhere
+   `training_time` INT,
    `creation_date` DATETIME,
    `description` VARCHAR(100),
    `user_fk` INT NOT NULL,
@@ -72,7 +73,7 @@ CREATE TABLE `pidl`.`model`(
 
 CREATE TABLE `pidl`.`evaluation`(
    `evaluation_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `accaracy` DECIMAL(5,4),                 -- ex: 0.8185
+   `accuracy` DECIMAL(5,4),                 -- ex: 0.8185
    `final_loss` DECIMAL(4,3),
    `latency_ms` DECIMAL(6,2),
    `execution_time_ms` DECIMAL(6,2),
