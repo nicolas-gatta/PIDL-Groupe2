@@ -174,3 +174,5 @@ cython_debug/
 # Autoriser les fichiers SQL dans le dossier database
 !database/*.sql
 
+venv_projet_bd/
+
