@@ -18,6 +18,12 @@ CREATE TABLE `pidl`.`role`(
    `description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE `pidl`.`precision`(
+   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
+   `precision_name` VARCHAR(50),
+   `description` VARCHAR(150)
+)DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50),
@@ -56,15 +62,18 @@ CREATE TABLE `pidl`.`model`(
    `model_size_label` VARCHAR(1),           -- ex: 'n', 's', 'm'
    `flops_billion` DECIMAL(6,2),            -- FLOPS in billions
    `model_size` DECIMAL(6,2),               -- same name, kept if needed elsewhere
+   `training_time` INT,
    `creation_date` DATETIME,
    `description` VARCHAR(100),
    `user_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE
+   `precision_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`evaluation`(
    `evaluation_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `accaracy` DECIMAL(5,4),                 -- ex: 0.8185
+   `accuracy` DECIMAL(5,4),                 -- ex: 0.8185
    `final_loss` DECIMAL(4,3),
    `latency_ms` DECIMAL(6,2),
    `execution_time_ms` DECIMAL(6,2),

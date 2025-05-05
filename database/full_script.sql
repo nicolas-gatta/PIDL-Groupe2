@@ -18,6 +18,12 @@ CREATE TABLE `pidl`.`role`(
    `description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE `pidl`.`precision`(
+   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
+   `precision_name` VARCHAR(50),
+   `description` VARCHAR(150)
+)DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50),
@@ -39,9 +45,9 @@ CREATE TABLE `pidl`.`user` (
    `last_name` VARCHAR(50),
    `email` VARCHAR(100) NOT NULL UNIQUE,     -- Required for Django
    `password` VARCHAR(256) NOT NULL,         -- Required for Django
-   `is_active` BOOLEAN DEFAULT TRUE,         -- Required for Django
-   `is_staff` BOOLEAN DEFAULT FALSE,         -- Required for Django
-   `is_superuser` BOOLEAN DEFAULT FALSE,     -- Required for Django
+   `is_active` TINYINT(1) DEFAULT 1,         -- Required for Django
+   `is_staff` TINYINT(1) DEFAULT 0,          -- Required for Django
+   `is_superuser` TINYINT(1) DEFAULT 0,      -- Required for Django
    `last_login` DATETIME DEFAULT NULL,       -- Required for Django
    `role_fk` INT NOT NULL,
    CONSTRAINT `FK_user_role` FOREIGN KEY (`role_fk`) REFERENCES `pidl`.`role` (`role_id`) ON DELETE CASCADE
@@ -56,15 +62,18 @@ CREATE TABLE `pidl`.`model`(
    `model_size_label` VARCHAR(1),           -- ex: 'n', 's', 'm'
    `flops_billion` DECIMAL(6,2),            -- FLOPS in billions
    `model_size` DECIMAL(6,2),               -- same name, kept if needed elsewhere
+   `training_time` INT,                     -- Training time in sec
    `creation_date` DATETIME,
    `description` VARCHAR(100),
    `user_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE
+   `precision_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`evaluation`(
    `evaluation_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `accaracy` DECIMAL(5,4),                 -- ex: 0.8185
+   `accuracy` DECIMAL(5,4),                 -- ex: 0.8185
    `final_loss` DECIMAL(4,3),
    `latency_ms` DECIMAL(6,2),
    `execution_time_ms` DECIMAL(6,2),
@@ -79,6 +88,7 @@ CREATE TABLE `pidl`.`evaluation`(
    CONSTRAINT `FK_evaluation_resource` FOREIGN KEY(`resource_fk`) REFERENCES `pidl`.`resource`(`resource_id`) ON DELETE CASCADE,
    CONSTRAINT `FK_model_resource` FOREIGN KEY(`model_fk`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
+
 
 CREATE TABLE `pidl`.`quantization`(
    `quantization_id` INT PRIMARY KEY AUTO_INCREMENT,
@@ -127,28 +137,27 @@ CREATE TABLE `pidl`.`model_task`(
    CONSTRAINT `FK_model_task_task` FOREIGN KEY(`task_fk`) REFERENCES `pidl`.`task`(`task_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
-
 -- 1. Vue principale : Détails des performances des modèles IA
 
-CREATE OR REPLACE VIEW `pidl`.`v_model_performance_detailed` AS
+CREATE OR REPLACE VIEW `pidl`.`v_models` AS
     SELECT 
-        m.`model_id`,
-        m.`model_name`,
-        m.`layer_count`,
-        m.`parameter_count`,
-        m.`model_size`,
-        e.`evaluation_id`,
-        e.`accaracy`,
-        e.`final_loss`,
-        e.`latency_ms`,
-        e.`execution_time_ms`,
-        e.`energy_consumption_mwh`,
-        e.`evaluation_date`,
-        r.`resource_name`
+		m.`model_id` AS `id`,
+        m.`model_name` AS `model_name`,
+        m.`architecture` AS `architecture`,
+        m.`model_size_label` AS `model_size_label`,
+        p.`precision_name` AS `precision`,
+        m.`layer_count` AS `layers`,
+        m.`parameter_count` AS `parameters_m`,
+        m.`flops_billion` AS `flops_b`,
+        m.`model_size` AS `model_size`,
+        m.`creation_date` AS `creation_date`,
+        m.`description` AS `description`,
+        m.`training_time` AS `training_time`,
+        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`
+        
     FROM `pidl`.`model` AS m
-    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
-    JOIN `pidl`.`resource` r ON e.`resource_fk` = r.`resource_id`;
-
+    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
+    JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id` ;
 
 -- 2. Vue : Distillation Professeur → Élève
 
@@ -163,30 +172,65 @@ CREATE OR REPLACE VIEW `pidl`.`v_distillation_pairs` AS
     JOIN `pidl`.`model` AS m_teacher ON kd.`teacher` = m_teacher.`model_id`
     JOIN `pidl`.`model` AS m_student ON kd.`student` = m_student.`model_id`;
 
--- 3. Vue : performances énergétiques et précisions de modèles (cf enoncé du projet)
+-- 3. Vue : performances énergétiques et précisions de modèles
 CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
     SELECT 
-        m.`model_size_label` AS model_size,
-        
-        CASE
-            WHEN m.`model_name` LIKE '%base%' THEN 'base_model'
-            WHEN m.`model_name` LIKE '%fp32%' THEN 'fp32'
-            WHEN m.`model_name` LIKE '%fp16%' THEN 'fp16'
-            WHEN m.`model_name` LIKE '%int8%' THEN 'int8'
-            ELSE 'unknown'
-        END AS `precision`,
-
-        m.`layer_count` AS layers,
-        m.`parameter_count` AS parameters_m,
-        m.`flops_billion` AS flops_b,
-        e.`fps_gpu` AS fps_gpu,
-        e.`emissions_gco2eq` AS avg_emissions_gco2eq,
-        e.`energy_consumption_mwh` AS avg_energy_mwh,
-        e.`map_50` AS map_50,
-        e.`map_50_95` AS map_50_95
+        m.`model_id` AS `id`,
+        m.`model_name` AS `model_name`,
+        m.`architecture` AS `architecture`,
+        m.`model_size_label` AS `model_size_label`,
+        p.`precision_name` AS `precision`,
+        m.`layer_count` AS `layers`,
+        m.`parameter_count` AS `parameters_m`,
+        m.`flops_billion` AS `flops_b`,
+        m.`model_size` AS `model_size`,
+        m.`training_time` AS `training_time`,
+        e.`fps_gpu` AS `fps_gpu`,
+        e.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
+        e.`energy_consumption_mwh` AS `avg_energy_mwh`,
+        e.`map_50` AS `map_50`,
+        e.`map_50_95` AS `map_50_95`,
+        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`
 
     FROM `pidl`.`model` AS m
-    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`;
+    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
+    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
+    JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id`;
+
+CREATE OR REPLACE VIEW `pidl`.`v_model_full_data` AS
+    SELECT 
+		m.`model_id` AS `id`,
+        m.`model_name` AS `model_name`,
+        m.`architecture` AS `architecture`,
+        m.`model_size_label` AS `model_size_label`,
+        p.`precision_name` AS `precision`,
+        m.`layer_count` AS `layers`,
+        m.`parameter_count` AS `parameters_m`,
+        m.`flops_billion` AS `flops_b`,
+        m.`model_size` AS `model_size`,
+        m.`training_time` AS `training_time`,
+        m.`creation_date` AS `creation_date`,
+        m.`description` AS `description`,
+        e.`accuracy` AS `accuracy`,
+        e.`final_loss` AS `final_loss`,
+        e.`latency_ms` AS `latency_ms`,
+        e.`fps_gpu` AS `fps_gpu`,
+        e.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
+        e.`energy_consumption_mwh` AS `avg_energy_mwh`,
+        e.`map_50` AS `map_50`,
+        e.`map_50_95` AS `map_50_95`,
+        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`,
+        r.`cpu_type` AS `cpu_type`,
+        r.`memory_gpu` AS `memory_gpu`,
+        r.`memory_gb` AS `memory_gb`,
+        r.`cpu_frequency_ghz` AS `cpu_frequency_ghz`,
+        r.`max_power_watts` AS `max_power_watts`
+
+    FROM `pidl`.`model` AS m
+    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
+    JOIN `pidl`.`resource` AS r ON r.`resource_id` = e.`resource_fk`
+    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
+    JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id`;
 
 -- ------------------------Insertion ----------------------------------------------------------
 
@@ -211,6 +255,15 @@ VALUES
 (2, 'Object Detection', 'Detect and localize objects'),
 (3, 'Text Generation', 'Generate human-like text');
 
+-- Precision
+INSERT INTO `pidl`.`precision` (`precision_id`, `precision_name` ,`description`) 
+VALUES 
+(1, 'unknown', 'Precision is not specified or cannot be determined.'),
+(2, 'base_model', 'Original model precision as released by the provider, may vary.'),
+(3, 'fp32', '32-bit floating point precision'),
+(4, 'fp16', '16-bit floating point precision'),
+(5, 'int8', '8-bit integer precision');
+
 -- Users
 INSERT INTO `pidl`.`user` (`user_id`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_superuser`, `role_fk`) 
 VALUES 
@@ -219,19 +272,19 @@ VALUES
 (3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', TRUE, TRUE, 1);
 
 -- Models (8 models based on 3 sizes and 4 precisions)
-INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `creation_date`,`description`,`user_fk`)
+INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `training_time`,`creation_date`,`description`,`user_fk`, `precision_fk`)
 VALUES 
-(1, 'YOLO-n-base', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-01 10:00:00', 'Tiny model base', 1),
-(2, 'YOLO-n-fp32', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-02 10:00:00', 'Tiny model fp32', 1),
-(3, 'YOLO-n-fp16', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-03 10:00:00', 'Tiny model fp16', 1),
-(4, 'YOLO-n-int8', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-04 10:00:00', 'Tiny model int8', 1),
-(5, 'YOLO-s-base', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-05 10:00:00', 'Small model base', 1),
-(6, 'YOLO-s-fp32', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-06 10:00:00', 'Small model fp32', 1),
-(7, 'YOLO-s-fp16', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-07 10:00:00', 'Small model fp16', 1),
-(8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-08 10:00:00', 'Small model int8', 1);
+(1, 'YOLO-n-base', 'CNN', 3.01, 168, 'n', 8.10, 97.5, 8500, '2024-01-01 10:00:00', 'Tiny model base', 1, 2),
+(2, 'YOLO-n-fp32', 'CNN', 3.01, 168, 'n', 8.10, 97.5, 9999, '2024-01-02 10:00:00', 'Tiny model fp32', 1, 3),
+(3, 'YOLO-n-fp16', 'CNN', 3.01, 168, 'n', 8.10, 97.5, 8000, '2024-01-03 10:00:00', 'Tiny model fp16', 1, 4),
+(4, 'YOLO-n-int8', 'CNN', 3.01, 168, 'n', 8.10, 97.5, 75000, '2024-01-04 10:00:00', 'Tiny model int8', 1, 5),
+(5, 'YOLO-s-base', 'CNN', 11.13, 168, 's', 28.46, 240.0, 6000, '2024-01-05 10:00:00', 'Small model base', 1, 2),
+(6, 'YOLO-s-fp32', 'CNN', 11.13, 168, 's', 28.46, 240.0, 25000, '2024-01-06 10:00:00', 'Small model fp32', 1, 3),
+(7, 'YOLO-s-fp16', 'CNN', 11.13, 168, 's', 28.46, 240.0, 250000, '2024-01-07 10:00:00', 'Small model fp16', 1, 4),
+(8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, 8000, '2024-01-08 10:00:00', 'Small model int8', 1, 5);
 
 -- Evaluations
-INSERT INTO `pidl`.`evaluation` (`evaluation_id`, `accaracy`, `final_loss`, `latency_ms`, `execution_time_ms`, `energy_consumption_mwh`, `emissions_gco2eq`, `fps_gpu`, `map_50`, `map_50_95`, `evaluation_date`, `resource_fk`, `model_fk`) 
+INSERT INTO `pidl`.`evaluation` (`evaluation_id`, `accuracy`, `final_loss`, `latency_ms`, `execution_time_ms`, `energy_consumption_mwh`, `emissions_gco2eq`, `fps_gpu`, `map_50`, `map_50_95`, `evaluation_date`, `resource_fk`, `model_fk`) 
 VALUES 
 (1, 0.7572, 0.320, 45.67, 1340.5, 0.1500, 0.0207, 693.48, 0.7572, 0.5640, '2024-03-01 12:00:00', 2, 1),
 (2, 0.7565, 0.300, 40.50, 1200.0, 0.1346, 0.0186, 866.53, 0.7565, 0.5604, '2024-03-01 13:00:00', 2, 2),
@@ -279,4 +332,3 @@ VALUES
 (6, 6, 2),
 (7, 7, 3),
 (8, 8, 3);
-

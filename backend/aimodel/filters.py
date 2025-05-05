@@ -1,71 +1,30 @@
-from django_filters import rest_framework as filters
-from django.db import models
-from .models import *
+import django_filters
+from .models import BasicDataModel, ModelTask, Task
 
-class BaseFilterSet(filters.FilterSet):
-    @classmethod
-    def generate_numeric_filter_fields(cls, model):
-        field_map = {}
-        for field in model._meta.fields:
-            if field.primary_key or isinstance(field, models.ForeignKey):
-                continue  
-            if isinstance(field, (models.DecimalField, models.IntegerField, models.FloatField, models.DateTimeField)):
-                field_map[field.name] = ['exact', 'gte', 'lte', 'gt', 'lt']
-            elif isinstance(field, (models.CharField, models.TextField)):
-                field_map[field.name] = ['exact', 'icontains']
-            elif isinstance(field, models.BooleanField):
-                field_map[field.name] = ['exact']
-            elif isinstance(field, models.ForeignKey):
-                field_map[field.name] = ['exact']
-        return field_map
-
-# Filtres par entité
-class EvaluationFilter(BaseFilterSet):
+class BasicDataFilter(django_filters.FilterSet):
+    task = django_filters.CharFilter(method='filter_by_task')
+    architecture = django_filters.CharFilter(lookup_expr='icontains')
+    precision = django_filters.CharFilter(lookup_expr='iexact')
+    model_size_label = django_filters.CharFilter(lookup_expr='iexact')
+    model_size_min = django_filters.NumberFilter(field_name='model_size', lookup_expr='gte')
+    model_size_max = django_filters.NumberFilter(field_name='model_size', lookup_expr='lte')
+    emissions_min = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='gte')
+    emissions_max = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='lte')
+    energy_min = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='gte')
+    energy_max = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='lte')
+    max_training_time = django_filters.NumberFilter(field_name='training_time', lookup_expr='lte')
+    creator = django_filters.CharFilter(lookup_expr='icontains')
+    
     class Meta:
-        model = Evaluation
-        fields = BaseFilterSet.generate_numeric_filter_fields(Evaluation)
+        model = BasicDataModel
+        fields = []
+        
+    def filter_by_task(self, queryset, name, value):
+        
+        task_names = [v.strip() for v in value.split(',') if v.strip()]
+        
+        task_ids = Task.objects.filter(task_name__in=task_names).values_list('task_id', flat=True)
+        
+        model_ids = ModelTask.objects.filter(task_fk_id__in=task_ids).values_list('model_fk_id', flat=True)
 
-class ModelFilter(BaseFilterSet):
-    class Meta:
-        model = Model
-        fields = BaseFilterSet.generate_numeric_filter_fields(Model)
-
-class OptimizationFilter(BaseFilterSet):
-    class Meta:
-        model = Optimization
-        fields = BaseFilterSet.generate_numeric_filter_fields(Optimization)
-
-class ResourceFilter(BaseFilterSet):
-    class Meta:
-        model = Resource
-        fields = BaseFilterSet.generate_numeric_filter_fields(Resource)
-
-class TaskFilter(BaseFilterSet):
-    class Meta:
-        model = Task
-        fields = BaseFilterSet.generate_numeric_filter_fields(Task)
-
-class QuantizationFilter(BaseFilterSet):
-    class Meta:
-        model = Quantization
-        fields = BaseFilterSet.generate_numeric_filter_fields(Quantization)
-
-class PruningFilter(BaseFilterSet):
-    class Meta:
-        model = Pruning
-        fields = BaseFilterSet.generate_numeric_filter_fields(Pruning)
-
-class KnowledgeDistillationFilter(BaseFilterSet):
-    class Meta:
-        model = KnowledgeDistillation
-        fields = BaseFilterSet.generate_numeric_filter_fields(KnowledgeDistillation)
-
-class ModelOptimizationFilter(BaseFilterSet):
-    class Meta:
-        model = ModelOptimization
-        fields = BaseFilterSet.generate_numeric_filter_fields(ModelOptimization)
-
-class ModelTaskFilter(BaseFilterSet):
-    class Meta:
-        model = ModelTask
-        fields = BaseFilterSet.generate_numeric_filter_fields(ModelTask)
+        return queryset.filter(id__in=model_ids)

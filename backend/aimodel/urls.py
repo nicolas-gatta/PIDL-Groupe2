@@ -1,20 +1,8 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import *
 
-router = DefaultRouter()
-router.register('resources', ResourceViewSet)
-router.register('tasks', TaskViewSet)
-router.register('models', ModelViewSet)
-router.register('evaluations', EvaluationViewSet)
-router.register('optimizations', OptimizationViewSet)
-router.register('knowledge-distillations', KnowledgeDistillationViewSet)
-router.register('prunings', PruningViewSet)
-router.register('quantizations', QuantizationViewSet)
-router.register('model-optimizations', ModelOptimizationViewSet)
-router.register('model-tasks', ModelTaskViewSet)
-
 urlpatterns = [
-    path('', include(router.urls)),
+    path('get_all_data_models_table', get_all_data_models_table, name='get_all_data_models_table'),
+    path('get_all_data_models', get_all_data_models, name = "get_all_data_models"),
+    path('get_filtered_data_models', FilteredModelListView.as_view(), name = "get_filtered_data_models")
 ]
-

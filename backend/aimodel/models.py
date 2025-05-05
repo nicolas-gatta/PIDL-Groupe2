@@ -21,11 +21,20 @@ class Resource(models.Model):
 class Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     task_name = models.CharField(max_length=50, blank=True, null=True)
-    description = models.CharField(max_length=100, blank=True, null=True)
+    description = models.CharField(max_length=150, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'task'
+        
+class Precision(models.Model):
+    precision_id = models.AutoField(primary_key=True)
+    precision_name = models.CharField(max_length=50, blank=True, null=True)
+    description = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'precision'
 
 class Optimization(models.Model):
     optimization_id = models.AutoField(primary_key=True)
@@ -131,3 +140,60 @@ class Quantization(models.Model):
     class Meta:
         managed = False
         db_table = 'quantization'
+        
+
+class BasicDataModel(models.Model):
+    
+    id = models.AutoField(primary_key=True)
+    model_name = models.CharField(max_length=50, blank=False, null=False)
+    architecture = models.CharField(max_length=50, blank=False, null=False)
+    model_size_label = models.CharField(max_length=50, blank=False, null=False)
+    precision = models.CharField(max_length=50, blank=False, null=False)
+    model_size = models.FloatField(blank=False, null=False)
+    layers = models.IntegerField(blank=False, null=False)
+    parameters_m = models.FloatField(blank=False, null=False)
+    flops_b = models.FloatField(blank=False, null=False)
+    fps_gpu = models.FloatField(blank=False, null=False)
+    avg_emissions_gco2eq = models.FloatField(blank=False, null=False)
+    avg_energy_mwh = models.FloatField(blank=False, null=False)
+    map_50 = models.FloatField(blank=False, null=False)
+    map_50_95 = models.FloatField(blank=False, null=False)
+    training_time = models.FloatField(blank=False, null=False)
+    creator = models.CharField(max_length=100, blank=False, null=False)
+    
+    class Meta:
+        managed = False
+        db_table = "v_model_energy_performance"
+        
+class FullDataModel(models.Model):
+    
+    id = models.AutoField(primary_key=True)
+    model_name = models.CharField(max_length=50, blank=False, null=False)
+    architecture = models.CharField(max_length=50, blank=False, null=False)
+    model_size_label = models.CharField(max_length=50, blank=False, null=False)
+    precision = models.CharField(max_length=50, blank=False, null=False)
+    layers = models.IntegerField(blank=False, null=False)
+    parameters_m = models.FloatField(blank=False, null=False)
+    flops_b = models.FloatField(blank=False, null=False)
+    model_size = models.FloatField(blank=False, null=False)
+    training_time = models.FloatField(blank=False, null=False)
+    creation_date = models.DateField(blank=False, null=False)
+    description = models.TextField(blank=True, null=True)
+    accuracy = models.FloatField(blank=False, null=False)
+    final_loss = models.FloatField(blank=False, null=False)
+    latency_ms = models.FloatField(blank=False, null=False)
+    fps_gpu = models.FloatField(blank=False, null=False)
+    avg_emissions_gco2eq = models.FloatField(blank=False, null=False)
+    avg_energy_mwh = models.FloatField(blank=False, null=False)
+    map_50 = models.FloatField(blank=False, null=False)
+    map_50_95 = models.FloatField(blank=False, null=False)
+    creator = models.CharField(max_length=100, blank=False, null=False)
+    cpu_type = models.CharField(max_length=250, blank=False, null=False)
+    memory_gpu = models.IntegerField(blank=False, null=False)
+    memory_gb = models.IntegerField(blank=False, null=False)
+    cpu_frequency_ghz = models.FloatField(blank=False, null=False)
+    max_power_watts = models.IntegerField(blank=False, null=False)
+    
+    class Meta:
+        managed = False
+        db_table = "v_model_full_data"
