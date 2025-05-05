@@ -21,6 +21,15 @@ VALUES
 (2, 'Object Detection', 'Detect and localize objects'),
 (3, 'Text Generation', 'Generate human-like text');
 
+-- Precision
+INSERT INTO `pidl`.`precision` (`precision_id`, `precision_name` ,`description`) 
+VALUES 
+(1, 'unknown', 'Precision is not specified or cannot be determined.'),
+(2, 'base_model', 'Original model precision as released by the provider, may vary.'),
+(3, 'fp32', '32-bit floating point precision'),
+(4, 'fp16', '16-bit floating point precision'),
+(5, 'int8', '8-bit integer precision');
+
 -- Users
 INSERT INTO `pidl`.`user` (`user_id`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_superuser`, `role_fk`) 
 VALUES 
@@ -29,16 +38,16 @@ VALUES
 (3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', TRUE, TRUE, 1);
 
 -- Models (8 models based on 3 sizes and 4 precisions)
-INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `creation_date`,`description`,`user_fk`)
+INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `creation_date`,`description`,`user_fk`, `precision_fk`)
 VALUES 
-(1, 'YOLO-n-base', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-01 10:00:00', 'Tiny model base', 1),
-(2, 'YOLO-n-fp32', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-02 10:00:00', 'Tiny model fp32', 1),
-(3, 'YOLO-n-fp16', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-03 10:00:00', 'Tiny model fp16', 1),
-(4, 'YOLO-n-int8', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-04 10:00:00', 'Tiny model int8', 1),
-(5, 'YOLO-s-base', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-05 10:00:00', 'Small model base', 1),
-(6, 'YOLO-s-fp32', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-06 10:00:00', 'Small model fp32', 1),
-(7, 'YOLO-s-fp16', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-07 10:00:00', 'Small model fp16', 1),
-(8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-08 10:00:00', 'Small model int8', 1);
+(1, 'YOLO-n-base', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-01 10:00:00', 'Tiny model base', 1, 2),
+(2, 'YOLO-n-fp32', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-02 10:00:00', 'Tiny model fp32', 1, 3),
+(3, 'YOLO-n-fp16', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-03 10:00:00', 'Tiny model fp16', 1, 4),
+(4, 'YOLO-n-int8', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-04 10:00:00', 'Tiny model int8', 1, 5),
+(5, 'YOLO-s-base', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-05 10:00:00', 'Small model base', 1, 2),
+(6, 'YOLO-s-fp32', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-06 10:00:00', 'Small model fp32', 1, 3),
+(7, 'YOLO-s-fp16', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-07 10:00:00', 'Small model fp16', 1, 4),
+(8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-08 10:00:00', 'Small model int8', 1, 5);
 
 -- Evaluations
 INSERT INTO `pidl`.`evaluation` (`evaluation_id`, `accaracy`, `final_loss`, `latency_ms`, `execution_time_ms`, `energy_consumption_mwh`, `emissions_gco2eq`, `fps_gpu`, `map_50`, `map_50_95`, `evaluation_date`, `resource_fk`, `model_fk`) 

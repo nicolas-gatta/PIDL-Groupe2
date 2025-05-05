@@ -40,15 +40,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
         m.`model_name` AS `model_name`,
         m.`architecture` AS `architecture`,
         m.`model_size_label` AS `model_size`,
-        
-        CASE
-            WHEN m.`model_name` LIKE '%base%' THEN 'base_model'
-            WHEN m.`model_name` LIKE '%fp32%' THEN 'fp32'
-            WHEN m.`model_name` LIKE '%fp16%' THEN 'fp16'
-            WHEN m.`model_name` LIKE '%int8%' THEN 'int8'
-            ELSE 'unknown'
-        END AS `precision`,
-
+        p.`precision_name` AS `precision`,
         m.`layer_count` AS `layers`,
         m.`parameter_count` AS `parameters_m`,
         m.`flops_billion` AS `flops_b`,
@@ -59,5 +51,6 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
         e.`map_50_95` AS `map_50_95`
 
     FROM `pidl`.`model` AS m
-    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`;
+    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
+    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`;
 

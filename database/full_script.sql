@@ -18,6 +18,12 @@ CREATE TABLE `pidl`.`role`(
    `description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE `pidl`.`precision`(
+   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
+   `precision_name` VARCHAR(50),
+   `description` VARCHAR(150)
+)DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50),
@@ -39,9 +45,9 @@ CREATE TABLE `pidl`.`user` (
    `last_name` VARCHAR(50),
    `email` VARCHAR(100) NOT NULL UNIQUE,     -- Required for Django
    `password` VARCHAR(256) NOT NULL,         -- Required for Django
-   `is_active` BOOLEAN DEFAULT TRUE,         -- Required for Django
-   `is_staff` BOOLEAN DEFAULT FALSE,         -- Required for Django
-   `is_superuser` BOOLEAN DEFAULT FALSE,     -- Required for Django
+   `is_active` TINYINT(1) DEFAULT 1,         -- Required for Django
+   `is_staff` TINYINT(1) DEFAULT 0,          -- Required for Django
+   `is_superuser` TINYINT(1) DEFAULT 0,      -- Required for Django
    `last_login` DATETIME DEFAULT NULL,       -- Required for Django
    `role_fk` INT NOT NULL,
    CONSTRAINT `FK_user_role` FOREIGN KEY (`role_fk`) REFERENCES `pidl`.`role` (`role_id`) ON DELETE CASCADE
@@ -59,7 +65,9 @@ CREATE TABLE `pidl`.`model`(
    `creation_date` DATETIME,
    `description` VARCHAR(100),
    `user_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE
+   `precision_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`evaluation`(
@@ -127,7 +135,6 @@ CREATE TABLE `pidl`.`model_task`(
    CONSTRAINT `FK_model_task_task` FOREIGN KEY(`task_fk`) REFERENCES `pidl`.`task`(`task_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
-
 -- 1. Vue principale : Détails des performances des modèles IA
 
 CREATE OR REPLACE VIEW `pidl`.`v_model_performance_detailed` AS
@@ -170,15 +177,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
         m.`model_name` AS `model_name`,
         m.`architecture` AS `architecture`,
         m.`model_size_label` AS `model_size`,
-        
-        CASE
-            WHEN m.`model_name` LIKE '%base%' THEN 'base_model'
-            WHEN m.`model_name` LIKE '%fp32%' THEN 'fp32'
-            WHEN m.`model_name` LIKE '%fp16%' THEN 'fp16'
-            WHEN m.`model_name` LIKE '%int8%' THEN 'int8'
-            ELSE 'unknown'
-        END AS `precision`,
-
+        p.`precision_name` AS `precision`,
         m.`layer_count` AS `layers`,
         m.`parameter_count` AS `parameters_m`,
         m.`flops_billion` AS `flops_b`,
@@ -189,7 +188,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
         e.`map_50_95` AS `map_50_95`
 
     FROM `pidl`.`model` AS m
-    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`;
+    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
+    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`;
 
 -- ------------------------Insertion ----------------------------------------------------------
 
@@ -214,6 +214,15 @@ VALUES
 (2, 'Object Detection', 'Detect and localize objects'),
 (3, 'Text Generation', 'Generate human-like text');
 
+-- Precision
+INSERT INTO `pidl`.`precision` (`precision_id`, `precision_name` ,`description`) 
+VALUES 
+(1, 'unknown', 'Precision is not specified or cannot be determined.'),
+(2, 'base_model', 'Original model precision as released by the provider, may vary.'),
+(3, 'fp32', '32-bit floating point precision'),
+(4, 'fp16', '16-bit floating point precision'),
+(5, 'int8', '8-bit integer precision');
+
 -- Users
 INSERT INTO `pidl`.`user` (`user_id`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_superuser`, `role_fk`) 
 VALUES 
@@ -222,16 +231,16 @@ VALUES
 (3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', TRUE, TRUE, 1);
 
 -- Models (8 models based on 3 sizes and 4 precisions)
-INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `creation_date`,`description`,`user_fk`)
+INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `creation_date`,`description`,`user_fk`, `precision_fk`)
 VALUES 
-(1, 'YOLO-n-base', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-01 10:00:00', 'Tiny model base', 1),
-(2, 'YOLO-n-fp32', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-02 10:00:00', 'Tiny model fp32', 1),
-(3, 'YOLO-n-fp16', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-03 10:00:00', 'Tiny model fp16', 1),
-(4, 'YOLO-n-int8', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-04 10:00:00', 'Tiny model int8', 1),
-(5, 'YOLO-s-base', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-05 10:00:00', 'Small model base', 1),
-(6, 'YOLO-s-fp32', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-06 10:00:00', 'Small model fp32', 1),
-(7, 'YOLO-s-fp16', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-07 10:00:00', 'Small model fp16', 1),
-(8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-08 10:00:00', 'Small model int8', 1);
+(1, 'YOLO-n-base', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-01 10:00:00', 'Tiny model base', 1, 2),
+(2, 'YOLO-n-fp32', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-02 10:00:00', 'Tiny model fp32', 1, 3),
+(3, 'YOLO-n-fp16', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-03 10:00:00', 'Tiny model fp16', 1, 4),
+(4, 'YOLO-n-int8', 'CNN', 3.01, 168, 'n', 8.10, 97.5, '2024-01-04 10:00:00', 'Tiny model int8', 1, 5),
+(5, 'YOLO-s-base', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-05 10:00:00', 'Small model base', 1, 2),
+(6, 'YOLO-s-fp32', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-06 10:00:00', 'Small model fp32', 1, 3),
+(7, 'YOLO-s-fp16', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-07 10:00:00', 'Small model fp16', 1, 4),
+(8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, '2024-01-08 10:00:00', 'Small model int8', 1, 5);
 
 -- Evaluations
 INSERT INTO `pidl`.`evaluation` (`evaluation_id`, `accaracy`, `final_loss`, `latency_ms`, `execution_time_ms`, `energy_consumption_mwh`, `emissions_gco2eq`, `fps_gpu`, `map_50`, `map_50_95`, `evaluation_date`, `resource_fk`, `model_fk`) 
@@ -282,4 +291,3 @@ VALUES
 (6, 6, 2),
 (7, 7, 3),
 (8, 8, 3);
-

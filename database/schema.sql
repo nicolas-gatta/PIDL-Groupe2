@@ -18,6 +18,12 @@ CREATE TABLE `pidl`.`role`(
    `description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE `pidl`.`precision`(
+   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
+   `precision_name` VARCHAR(50),
+   `description` VARCHAR(150)
+)DEFAULT CHARSET = utf8mb4;
+
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50),
@@ -59,7 +65,9 @@ CREATE TABLE `pidl`.`model`(
    `creation_date` DATETIME,
    `description` VARCHAR(100),
    `user_fk` INT NOT NULL,
-   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE
+   `precision_fk` INT NOT NULL,
+   CONSTRAINT `FK_model_user` FOREIGN KEY(`user_fk`) REFERENCES `pidl`.`user`(`user_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_model_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `pidl`.`evaluation`(
