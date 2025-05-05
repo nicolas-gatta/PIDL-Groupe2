@@ -21,11 +21,20 @@ class Resource(models.Model):
 class Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     task_name = models.CharField(max_length=50, blank=True, null=True)
-    description = models.CharField(max_length=100, blank=True, null=True)
+    description = models.CharField(max_length=150, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'task'
+        
+class Precision(models.Model):
+    precision_id = models.AutoField(primary_key=True)
+    precision_name = models.CharField(max_length=50, blank=True, null=True)
+    description = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'precision'
 
 class Optimization(models.Model):
     optimization_id = models.AutoField(primary_key=True)
