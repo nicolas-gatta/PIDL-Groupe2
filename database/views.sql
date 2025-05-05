@@ -80,10 +80,15 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_full_data` AS
         e.`energy_consumption_mwh` AS `avg_energy_mwh`,
         e.`map_50` AS `map_50`,
         e.`map_50_95` AS `map_50_95`,
-        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`
+        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`,
+        r.`cpu_type` AS `cpu_type`,
+        r.`memory_gpu` AS `memory_gpu`,
+        r.`memory_gb` AS `memory_gb`,
+        r.`cpu_frequency_ghz` AS `cpu_frequency_ghz`,
+        r.`max_power_watts` AS `max_power_watts`
 
     FROM `pidl`.`model` AS m
     JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
+    JOIN `pidl`.`resource` AS r ON r.`resource_id` = e.`resource_fk`
     JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
     JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id`;
-
