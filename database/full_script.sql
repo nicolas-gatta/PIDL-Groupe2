@@ -267,9 +267,12 @@ VALUES
 -- Users
 INSERT INTO `pidl`.`user` (`user_id`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_superuser`, `role_fk`) 
 VALUES 
-(1, 'Alice', 'Dupont', 'alice@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', FALSE, FALSE, 3),
-(2, 'Bob', 'Ngoma', 'bob@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', FALSE, FALSE, 2),
-(3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$1000000$BbK603KBBjhBsvhIZeminE$GQrbXO6yG/fB+UvY80+7pu/EriYcgGItzFCnZeFQBTo=', TRUE, TRUE, 1);
+-- reel pass: alice123
+(1, 'Alice', 'Dupont', 'alice@example.com', 'pbkdf2_sha256$1000000$MzYEEkMKsAWZJyIAl0yBWB$A5qh/vlkgAtcZODDcUNBnFnsdk1c4A3dtUeZjtU9y6k=', FALSE, FALSE, 3),
+-- reel pass: bob123 
+(2, 'Bob', 'Ngoma', 'bob@example.com', 'pbkdf2_sha256$1000000$HTFiQSs4yghxR8I6drRm23$KnnqQVuQITW2VNo83yJ9ootouU7qLEYvD4xTM9faSUg=', FALSE, FALSE, 2),
+-- reel pass: admin123
+(3, 'John', 'Doe', 'john@example.com', 'pbkdf2_sha256$1000000$BvL87S5JKAXw5U7MlRZVpe$0sq/zXHD71iQLxaF7RZIe0XYqPL/eBoDcgjy0TC6mdc=', TRUE, TRUE, 1);
 
 -- Models (8 models based on 3 sizes and 4 precisions)
 INSERT INTO `pidl`.`model` (`model_id`, `model_name`, `architecture`, `parameter_count`, `layer_count`, `model_size_label`, `flops_billion`, `model_size`, `training_time`,`creation_date`,`description`,`user_fk`, `precision_fk`)

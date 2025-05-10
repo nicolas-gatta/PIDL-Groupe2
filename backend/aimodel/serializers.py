@@ -1,6 +1,7 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
-from .models import Task, ModelTask, BasicDataModel, FullDataModel, Quantization, Pruning, KnowledgeDistillation
+from .models import Task, ModelTask, BasicDataModel, FullDataModel, Quantization, Pruning, KnowledgeDistillation, ModelOptimization, Optimization
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +37,7 @@ class BasicDataModelSerializer(serializers.ModelSerializer):
             'model_size', 'layers', 'parameters_m', 'flops_b', 'fps_gpu',
             'avg_emissions_gco2eq', 'avg_energy_mwh', 'map_50', 'map_50_95', 'training_time',
             'creator', 'tasks']
-
+    @extend_schema_field(TaskSerializer(many=True))
     def get_tasks(self, obj):
         
         # Find all task IDs linked to this model
@@ -50,8 +51,8 @@ class BasicDataModelSerializer(serializers.ModelSerializer):
     
 class FullDataModelSerializer(serializers.ModelSerializer):
     tasks = serializers.SerializerMethodField()
-    as_student = serializers.SerializerMethodField()
-    as_teacher = serializers.SerializerMethodField()
+    student = serializers.SerializerMethodField()
+    teacher = serializers.SerializerMethodField()
     optimizations = serializers.SerializerMethodField()
     
     class Meta:
@@ -62,8 +63,8 @@ class FullDataModelSerializer(serializers.ModelSerializer):
                     'creation_date', 'description', 'accuracy','final_loss', 'latency_ms',
                     'fps_gpu','avg_emissions_gco2eq', 'avg_energy_mwh', 'map_50', 'map_50_95',
                     'cpu_type', 'memory_gpu' , 'memory_gb' , 'cpu_frequency_ghz', 'max_power_watts', 
-                    'creator', 'tasks', 'students', 'teacher', 'optimizations']
-        
+                    'creator', 'tasks', 'student', 'teacher', 'optimizations']
+    @extend_schema_field(TaskSerializer(many=True))
     def get_tasks(self, obj):
         
         # Find all task IDs linked to this model
@@ -74,3 +75,42 @@ class FullDataModelSerializer(serializers.ModelSerializer):
         
         # Serialize tasks
         return TaskSerializer(tasks, many=True).data
+    @extend_schema_field(KnowledgeDistillationSerializer(many=True))
+    def get_student(self, obj):
+        distillations = KnowledgeDistillation.objects.filter(student=obj.id)
+        return KnowledgeDistillationSerializer(distillations, many=True).data
+    @extend_schema_field(KnowledgeDistillationSerializer(many=True))
+    def get_teacher(self, obj):
+        distillations = KnowledgeDistillation.objects.filter(teacher=obj.id)
+        return KnowledgeDistillationSerializer(distillations, many=True).data
+    @extend_schema_field(serializers.ListSerializer(child=serializers.DictField()))
+    def get_optimizations(self, obj):
+        optimization_links = ModelOptimization.objects.filter(model_fk=obj.id)
+        optimization_ids = [opt.optimization_fk_id for opt in optimization_links]
+        optimizations = Optimization.objects.filter(optimization_id__in=optimization_ids)
+
+        result = []
+        for opt in optimizations:
+            opt_data = {
+                "optimization_id": opt.optimization_id,
+                "name": opt.name,
+                "date": opt.optimization_date,
+                "description": opt.description,
+            }
+
+            if hasattr(opt, 'quantization'):
+                opt_data['type'] = 'Quantization'
+                opt_data['details'] = QuantizationSerializer(opt.quantization).data
+            elif hasattr(opt, 'pruning'):
+                opt_data['type'] = 'Pruning'
+                opt_data['details'] = PruningSerializer(opt.pruning).data
+            elif hasattr(opt, 'knowledgedistillation'):
+                opt_data['type'] = 'KnowledgeDistillation'
+                opt_data['details'] = KnowledgeDistillationSerializer(opt.knowledgedistillation).data
+            else:
+                opt_data['type'] = 'Unknown'
+                opt_data['details'] = {}
+
+            result.append(opt_data)
+
+        return result

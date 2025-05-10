@@ -68,3 +68,11 @@ http://127.0.0.1:8000/api/v1/models/?search=YOLO
 5. Filtrer les évaluations selon une valeur minimale de accuracy
 
 http://127.0.0.1:8000/api/v1/evaluations/?accuracy__gte=0.80
+
+
+find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+find . -path "*/migrations/*.pyc" -delete
+mysql -u root -p < ../database/full_script.sql
+python manage.py makemigrations 
+python manage.py migrate    
+ mysql -u root -p pidl < ../database/init_permissions.sql
