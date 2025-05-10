@@ -59,6 +59,7 @@ class Model(models.Model):
     creation_date = models.DateTimeField(blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     user_fk = models.ForeignKey(CustomUser, models.CASCADE, db_column='user_fk')
+    precision_fk = models.ForeignKey(Precision,models.CASCADE, db_column='precision_fk')
 
     class Meta:
         managed = False
@@ -177,7 +178,7 @@ class FullDataModel(models.Model):
     flops_b = models.FloatField(blank=False, null=False)
     model_size = models.FloatField(blank=False, null=False)
     training_time = models.FloatField(blank=False, null=False)
-    creation_date = models.DateField(blank=False, null=False)
+    creation_date = models.DateTimeField(blank=False, null=False)
     description = models.TextField(blank=True, null=True)
     accuracy = models.FloatField(blank=False, null=False)
     final_loss = models.FloatField(blank=False, null=False)

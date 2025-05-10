@@ -10,13 +10,16 @@ from login.serializers import CustomUserSerializer, RegisterInputSerializer, Log
 from login.models import CustomUser, Role
 
 from django.shortcuts import render
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 # Create your views here.
 @extend_schema(
     request=LoginInputSerializer,
-    responses={200: CustomUserSerializer},
-    description="Connexion d’un utilisateur via email/mot de passe."
+    responses={
+        200: OpenApiResponse(response=CustomUserSerializer, description="Connexion réussie"),
+        404: OpenApiResponse(description="Identifiants invalides")
+    },
+    description="Connexion d’un utilisateur via email/mot de passe. Retourne un token et les infos utilisateur."
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -34,8 +37,11 @@ def login_view(request):
 
 
 @extend_schema(
-    responses={200: None},
-    description="Déconnexion de l'utilisateur." )
+    responses={
+        200: OpenApiResponse(description="Déconnexion réussie.")
+    },
+    description="Déconnexion de l'utilisateur en supprimant son token."
+)
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -45,8 +51,12 @@ def logout_view(request):
 
 @extend_schema(
     request=RegisterInputSerializer,
-    responses={201: CustomUserSerializer},
-    description="Inscription d'un nouvel utilisateur."
+    responses={
+        201: OpenApiResponse(response=CustomUserSerializer, description="Utilisateur inscrit avec succès."),
+        400: OpenApiResponse(description="Email ou mot de passe manquant."),
+        500: OpenApiResponse(description="Erreur serveur (ex : utilisateur existant)")
+    },
+    description="Inscription d'un nouvel utilisateur. Par défaut, le rôle est 'Researcher'."
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -60,7 +70,7 @@ def register_view(request):
         return Response({"error": "Email et mot de passe requis."}, status = status.HTTP_400_BAD_REQUEST) 
     
     try:
-        # rôle par défaut : student (id = 3)
+        # rôle par défaut : Researcher (id = 3)
         default_role = Role.objects.get(role_id = 3)
 
         user = CustomUser.objects.create_user(
@@ -80,8 +90,6 @@ def register_view(request):
     except Exception as e:
         return Response({"error":str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-
-
 
 def register_form_view(request):
     return render(request, 'register_test.html')
