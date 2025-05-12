@@ -176,3 +176,12 @@ cython_debug/
 
 venv_projet_bd/
 
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+node_modules
+bower_components
