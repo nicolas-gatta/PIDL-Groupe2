@@ -8,6 +8,7 @@ This project provides a web-based database for storing and analyzing AI model pe
 4. [Use the project online](#use-online)
 5. [Django basic command](#django-basics)
 6. [React basic command](#react-basics)
+7. [User Login](#user-login-credentials)
 
 ---
 ### 🔧 Structure
@@ -130,3 +131,17 @@ npm start
 ```
 
 Open [http://localhost:8081/](http://localhost:8081/) in your browser.  You're now up and running!
+
+----
+## User Login Credentials
+
+Below are the credentials for the available user accounts:
+
+ **Email**          | **Password** |
+--------------------| ------------ |
+alice@example.com   | alice123     |
+bob@example.com     | bob123       |
+john@example.com    | admin123     |
+
+
+
