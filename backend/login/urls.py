@@ -6,9 +6,3 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('register/', register_view, name='register'),
 ]
-
-from django.conf import settings
-
-if settings.DEBUG:
-    from . import urls_dev
-    urlpatterns += urls_dev.urlpatterns
