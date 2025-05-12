@@ -19,7 +19,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
         200: OpenApiResponse(response=CustomUserSerializer, description="Connexion réussie"),
         404: OpenApiResponse(description="Identifiants invalides")
     },
-    description="Connexion d’un utilisateur via email/mot de passe. Retourne un token et les infos utilisateur."
+    description="Connexion d'un utilisateur via email/mot de passe. Retourne un token et les infos utilisateur."
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -38,7 +38,8 @@ def login_view(request):
 
 @extend_schema(
     responses={
-        200: OpenApiResponse(description="Déconnexion réussie.")
+        200: OpenApiResponse(description="Déconnexion réussie."),
+        403: OpenApiResponse(description="Connexion Nécessaire")
     },
     description="Déconnexion de l'utilisateur en supprimant son token."
 )
@@ -59,7 +60,8 @@ def logout_view(request):
     description="Inscription d'un nouvel utilisateur. Par défaut, le rôle est 'Researcher'."
 )
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def register_view(request):
     email = request.data.get("email")
     password = request.data.get("password")
@@ -70,15 +72,13 @@ def register_view(request):
         return Response({"error": "Email et mot de passe requis."}, status = status.HTTP_400_BAD_REQUEST) 
     
     try:
-        # rôle par défaut : Researcher (id = 3)
-        default_role = Role.objects.get(role_id = 3)
 
-        user = CustomUser.objects.create_user(
+        user = CustomUser.objects.create(
             email =  email,
             password = password,
             first_name = first_name,
             last_name = last_name,
-            role_fk = default_role
+            role_fk = Role.objects.get(role_id = 3)
         )
 
         serializer = CustomUserSerializer(user)
@@ -89,10 +89,4 @@ def register_view(request):
     
     except Exception as e:
         return Response({"error":str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
 
-def register_form_view(request):
-    return render(request, 'register_test.html')
-
-def login_form_view(request):
-    return render(request, 'login_test.html')
