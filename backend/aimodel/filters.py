@@ -61,6 +61,14 @@ class FullDataFilter(StrictFilterSet):
     loss_max = django_filters.NumberFilter(field_name='final_loss', lookup_expr='lte')
     latency_min = django_filters.NumberFilter(field_name='latency_ms', lookup_expr='gte')
     latency_max = django_filters.NumberFilter(field_name='latency_ms', lookup_expr='lte')
+    map50_min = django_filters.NumberFilter(field_name='map_50', lookup_expr='gte')
+    map50_max = django_filters.NumberFilter(field_name='map_50', lookup_expr='lte')
+    map5095_min = django_filters.NumberFilter(field_name='map_50_95', lookup_expr='gte')
+    map5095_max = django_filters.NumberFilter(field_name='map_50_95', lookup_expr='lte')
+    training_time_min = django_filters.NumberFilter(field_name='training_time', lookup_expr='gte')
+    training_time_max = django_filters.NumberFilter(field_name='training_time', lookup_expr='lte')
+
+
 
     # Filtres environnementaux
     emissions_min = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='gte')

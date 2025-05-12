@@ -1,7 +1,7 @@
 // Dashboard.jsx - Vue principale pour la gestion des modèles IA
 // Ce composant affiche une table filtrable et triable des modèles IA 
 // récupérés depuis l'API backend, avec vérification d'authentification.
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom'; // Utilisation du hook React Router pour la navigation
 import { FaBars, FaArrowLeft } from 'react-icons/fa'; // Remplacement de Ionicons avec react-icons
 import './Dashboard.css'; // Fichier CSS pour les styles
@@ -15,14 +15,18 @@ const Dashboard = () => {
     // Données de modèles à afficher et erreur potentielle
     const [data, setData] = useState([]);
     const [error, setError] = useState('');
+
     // États pour les filtres simples
     const [selectedTask, setSelectedTask] = useState('');
     const [selectedType, setSelectedType] = useState('');
+    const [selectedCreator, setSelectedCreator] = useState('');
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
     // Filtres avancés (affichés dans modal)
     const [selectedEmissionRange, setSelectedEmissionRange] = useState([0, 1]);
-    const [selectedEnergyConsumptionRange, setSelectedEnergyConsumptionRange] = useState([0, 250]);
-    const [selectedTrainingTimeRange, setSelectedTrainingTimeRange] = useState([0, 100000]); // En secondes
-    const [selectedCreator, setSelectedCreator] = useState('');
+    const [selectedEnergyConsumptionRange, setSelectedEnergyConsumptionRange] = useState([0, 500]);
+    const [selectedTrainingTimeRange, setSelectedTrainingTimeRange] = useState([0, 1000000]); // En secondes
+   // //const [selectedCreator, setSelectedCreator] = useState('');
     const [selectedLayersRange, setSelectedLayersRange] = useState([0, 500]);
     const [selectedParametersRange, setSelectedParametersRange] = useState([0, 10000]);
     const [selectedAccuracyRange, setSelectedAccuracyRange] = useState([0, 100]);
@@ -35,7 +39,6 @@ const Dashboard = () => {
     const [asTeacher, setAsTeacher] = useState(false);
     const [asStudent, setAsStudent] = useState(false);
     const [hasOptimization, setHasOptimization] = useState(false);
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
     // Tri des colonnes
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -57,30 +60,74 @@ const Dashboard = () => {
         }
     }, []);
     // Récupération des données de modèles depuis l'API
+
+    const fetchFilteredData = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    const queryParams = new URLSearchParams();
+    if (selectedTask) queryParams.append('task', selectedTask);
+    if (selectedType) queryParams.append('architecture', selectedType);
+    if (selectedCreator) queryParams.append('creator', selectedCreator);
+    queryParams.append('layers_min', selectedLayersRange[0]);
+    queryParams.append('layers_max', selectedLayersRange[1]);
+    queryParams.append('parameters_min', selectedParametersRange[0]);
+    queryParams.append('parameters_max', selectedParametersRange[1]);
+    queryParams.append('emissions_min', selectedEmissionRange[0]);
+    queryParams.append('emissions_max', selectedEmissionRange[1]);
+    queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
+    queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
+    queryParams.append('training_time_min', selectedTrainingTimeRange[0]);
+    queryParams.append('training_time_max', selectedTrainingTimeRange[1]);
+    queryParams.append('accuracy_min', selectedAccuracyRange[0]);
+    queryParams.append('accuracy_max', selectedAccuracyRange[1]);
+    queryParams.append('loss_min', selectedLossRange[0]);
+    queryParams.append('loss_max', selectedLossRange[1]);
+    queryParams.append('latency_min', selectedLatencyRange[0]);
+    queryParams.append('latency_max', selectedLatencyRange[1]);
+    queryParams.append('map50_min', selectedMap50Range[0]);
+    queryParams.append('map50_max', selectedMap50Range[1]);
+    queryParams.append('map5095_min', selectedMap5095Range[0]);
+    queryParams.append('map5095_max', selectedMap5095Range[1]);
+    
+    if (asTeacher) queryParams.append('as_teacher', 'true');
+    if (asStudent) queryParams.append('as_student', 'true');
+    if (hasOptimization) queryParams.append('has_optimization', 'true');
+    
+
+    const url = `http://127.0.0.1:8000/models/get_filtered_data_models/?${queryParams.toString()}`;
+    console.log("Generated URL:",url);
+    try 
+    {
+        const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+
+        if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
+        const result = await response.json();
+        //console.log("Données complètes:", result);
+        if (result && result) {
+            setData(result);
+        } else {
+            console.error('La réponse ne contient pas de modèles valides.', result);
+        }
+    } catch (err) {
+        setError(err.message);
+        console.error("Erreur lors de la récupération des données:", err);
+        }
+    }, [
+    selectedTask, selectedType, selectedCreator, selectedLayersRange,
+    selectedParametersRange, selectedEmissionRange, selectedEnergyConsumptionRange,
+    selectedTrainingTimeRange, asTeacher, asStudent, hasOptimization,
+    selectedAccuracyRange, selectedLossRange, selectedLatencyRange,
+    selectedMap50Range, selectedMap5095Range
+    ]);
+
     useEffect(() => {
-        const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch('http://127.0.0.1:8000/models/get_full_data_models', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${token}`,
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Échec de la récupération des données');
-                }
-                const result = await response.json();
-                setData(result.models); // Les données sont dans la clé "models"
-            } catch (err) {
-                setError(err.message);
-            }
-        };
-
-        fetchData();
-    }, []);
+    fetchFilteredData();
+    }, [fetchFilteredData]);
 
     // Construction dynamique des options pour les filtres
     const allTasks = Array.from(new Set(data.flatMap(model => model.tasks?.map(t => t.task_name) || [])));
@@ -91,7 +138,7 @@ const Dashboard = () => {
         { key: 'model_name', label: 'Nom du Modèle' },
         { key: 'architecture', label: 'Architecture' },
         { key: 'model_size_label', label: 'Taille' },
-        { key: 'precision', label: 'Précision' },
+        { key: 'precision', label: 'Format du Modèle' },
         { key: 'layers', label: 'Couches' },
         { key: 'parameters_m', label: 'Paramètres (M)' },
         { key: 'flops_b', label: 'FLOPs (B)' },
@@ -113,47 +160,19 @@ const Dashboard = () => {
         { key: 'creator', label: 'Créateur' }
     ];
 
-    // Filtrage des données selon les critères sélectionnés
-    const filteredData = data.filter(model => {
-        return (
-            (selectedTask ? model.tasks?.some(t => t.task_name === selectedTask) : true) &&
-            (selectedType ? model.architecture === selectedType : true) &&
-            (model.avg_emissions_gco2eq >= selectedEmissionRange[0] && model.avg_emissions_gco2eq <= selectedEmissionRange[1]) &&
-            (model.avg_energy_mwh >= selectedEnergyConsumptionRange[0] && model.avg_energy_mwh <= selectedEnergyConsumptionRange[1]) &&
-            (model.training_time >= selectedTrainingTimeRange[0] && model.training_time <= selectedTrainingTimeRange[1])&&
-            (selectedCreator ? model.creator === selectedCreator : true) &&
-            (asTeacher ? model.teacher.length > 0 : true) &&
-            (asStudent ? model.student.length > 0 : true) &&
-            (hasOptimization ? model.optimizations.length > 0 : true) &&
-            (model.layers >= selectedLayersRange[0] && model.layers <= selectedLayersRange[1]) &&
-            (model.parameters_m >= selectedParametersRange[0] && model.parameters_m <= selectedParametersRange[1]) &&
-            (model.accuracy >= selectedAccuracyRange[0] &&
-            model.accuracy <= selectedAccuracyRange[1]) &&
-            (model.final_loss >= selectedLossRange[0] &&
-            model.final_loss <= selectedLossRange[1]) &&
-            (model.latency_ms >= selectedLatencyRange[0] &&
-            model.latency_ms <= selectedLatencyRange[1]) &&
-            (model.map_50 >= selectedMap50Range[0] &&
-            model.map_50 <= selectedMap50Range[1]) &&
-            (model.map_50_95 >= selectedMap5095Range[0] &&
-            model.map_50_95 <= selectedMap5095Range[1])
-
-
-
-        );
-    });
+    
     // Tri dynamique des données filtrées
-    const sortedData = [...filteredData].sort((a, b) => {
-        if (!sortConfig.key) return 0;
-        const aVal = a[sortConfig.key];
-        const bVal = b[sortConfig.key];
+   const sortedData = data.length > 0 ? [...data].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    const aVal = a[sortConfig.key];
+    const bVal = b[sortConfig.key];
 
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;   
-    });
+    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;   
+    }) : [];
 
-// Fonction pour mettre à jour le tri
+    // Fonction pour mettre à jour le tri
     const handleSort = (key) => {
         let direction = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -202,9 +221,6 @@ const Dashboard = () => {
                         {renderFilterGroup('Tâche', ['', ...allTasks], selectedTask, setSelectedTask)}
                         {renderFilterGroup('Type de Modèle', ['', ...allArchitectures], selectedType, setSelectedType)}
                         {renderFilterGroup('Créateur', ['', ...Array.from(new Set(data.map(m => m.creator)))], selectedCreator, setSelectedCreator)}
-
-
-                        {/* Sliders pour les filtres */}
                         
                         <button className="advanced-filter-toggle" onClick={() => setShowAdvancedFilters(true)}>
                             Filtres Avancés
@@ -217,12 +233,10 @@ const Dashboard = () => {
             {/* Main Content */}
             <div className={`main-content ${sidebarVisible ? 'full' : 'collapsed'}`}>
                 <h1>Gestion des modèles IA</h1>
-
                 <div className="table-container">
                     <div className="table-navigation">
                         
                     </div>
-
                     <table>
                         <thead>
                         <tr>
@@ -249,7 +263,6 @@ const Dashboard = () => {
                 <div className="modal-overlay">
                     <div className="modal-content">
                     <h3>Filtres Avancés</h3>
-
                     <div className="slider-group">
                         <label>Couches (layers)</label>
                         <input type="range" min="0" max="500" step="1"
@@ -326,23 +339,10 @@ const Dashboard = () => {
                             />
                             <span>{selectedTrainingTimeRange[0]} - {selectedTrainingTimeRange[1]} s</span>
                         </div>
-                        <div className="checkbox-group">
-                            <label>
-                                <input type="checkbox" checked={asTeacher} onChange={(e) => setAsTeacher(e.target.checked)} />
-                                Modèle enseignant
-                            </label>
-                            <label>
-                                <input type="checkbox" checked={asStudent} onChange={(e) => setAsStudent(e.target.checked)} />
-                                Modèle étudiant
-                            </label>
-                            <label>
-                                <input type="checkbox" checked={hasOptimization} onChange={(e) => setHasOptimization(e.target.checked)} />
-                                Optimisé
-                            </label>
-                        </div>
+                        
                         {/* Accuracy */}
                         <div className="slider-group">
-                            <label>Accuracy (%)</label>
+                            <label>Précision (%)</label>
                             <input type="range" min="0" max="100" step="1"
                             value={selectedAccuracyRange[0]}
                             onChange={(e) => setSelectedAccuracyRange([parseFloat(e.target.value), selectedAccuracyRange[1]])}
@@ -409,8 +409,28 @@ const Dashboard = () => {
                             />
                             <span>{selectedMap5095Range[0]} - {selectedMap5095Range[1]}</span>
                         </div>
-                    <button onClick={() => setShowAdvancedFilters(false)}>Fermer</button>
-                    </div>
+                        {/* studen-teacher-optimisation */}
+                        <div className="checkbox-group">
+                            <label>
+                                <input type="checkbox" checked={asTeacher} onChange={(e) => setAsTeacher(e.target.checked)} />
+                                Modèle enseignant
+                            </label>
+                            <label>
+                                <input type="checkbox" checked={asStudent} onChange={(e) => setAsStudent(e.target.checked)} />
+                                Modèle étudiant
+                            </label>
+                            <label>
+                                <input type="checkbox" checked={hasOptimization} onChange={(e) => setHasOptimization(e.target.checked)} />
+                                Optimisé
+                            </label>
+                        </div>
+                    <button onClick={() => {
+                        setShowAdvancedFilters(false);
+                        fetchFilteredData();
+                     }}>
+                        Appliquer les filtres
+                    </button>
+                 </div>
                 </div>
                 )}
 
