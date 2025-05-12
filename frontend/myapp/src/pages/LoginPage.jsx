@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';  
 
 export default function LoginPage() {
@@ -6,11 +7,35 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleLogin = () => {
-        if (username && password) {
-            setError('Connexion réussie!');
-        } else {
-            setError('Tous les champs doivent être remplis');
+    const navigate = useNavigate();
+
+    const handleLogin = async () => {
+        if (!username || !password) {
+            setError('Tous les champs doivent Ãªtre remplis');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/auth/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Stocker le token dans localStorage par exemple
+                localStorage.setItem('token', data.token);
+                navigate('/dashboard');
+                // Redirection ou autre logique ici
+            } else {
+                const err = await response.json();
+                setError(err.error || 'Ã‰chec de la connexion');
+            }
+        } catch (error) {
+            setError('Erreur rÃ©seau');
         }
     };
 

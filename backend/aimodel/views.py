@@ -1,3 +1,4 @@
+import logging
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
@@ -8,6 +9,8 @@ from rest_framework import status, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import BasicDataFilter, FullDataFilter
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 @extend_schema(
@@ -77,4 +80,5 @@ class FilteredFullModelListView(generics.ListAPIView):
     filterset_class = FullDataFilter
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
 

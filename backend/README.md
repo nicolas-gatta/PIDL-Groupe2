@@ -75,4 +75,5 @@ find . -path "*/migrations/*.pyc" -delete
 mysql -u root -p < ../database/full_script.sql
 python manage.py makemigrations 
 python manage.py migrate    
- mysql -u root -p pidl < ../database/init_permissions.sql
+mysql -u root -p pidl < ../database/init_permissions.sql
+python manage.py runserver
