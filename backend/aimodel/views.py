@@ -57,7 +57,7 @@ class FilteredFullModelListView(generics.ListAPIView):
 @api_view(['GET'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def get_all_data_simplify_models(request):
+def get_all_simplify_data_models(request):
     try:
         models = BasicDataModel.objects.all()
         serializer = BasicDataModelSerializer(models, many=True)
