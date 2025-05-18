@@ -30,16 +30,6 @@ CREATE TABLE `pidl`.`role`(
 )DEFAULT CHARSET = utf8mb4;
 
 -- =====================================================
--- Table: precision
--- Description: Represents the precision level of models (e.g., FP32, FP16, INT8).
--- =====================================================
-CREATE TABLE `pidl`.`precision`(
-   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `precision_name` VARCHAR(50),
-   `precision_description` VARCHAR(150)
-)DEFAULT CHARSET = utf8mb4;
-
--- =====================================================
 -- Table: task
 -- Description: Lists tasks that models can perform (e.g., Image Classification, Object Detection).
 -- =====================================================
@@ -47,6 +37,16 @@ CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50),
    `task_description` VARCHAR(100)
+)DEFAULT CHARSET = utf8mb4;
+
+-- =====================================================
+-- Table: precision
+-- Description: Represents the precision level of models (e.g., FP32, FP16, INT8).
+-- =====================================================
+CREATE TABLE `pidl`.`precision`(
+   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
+   `precision_name` VARCHAR(50),
+   `precision_description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
 -- =====================================================
@@ -341,6 +341,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_quantization` AS
         `quantization_type` AS `type`,
         `quantization_description` AS `description`,
         vp.`name` AS `target_precision`,
+        q.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
         vo.`gpu_memory` AS `gpu_memory`,
         vo.`computer_ram` AS `computer_ram`,
@@ -362,6 +363,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_pruning` AS
         `pruning_strategy` AS `strategy`,
         `pruning_rate` AS `rate`,
         `pruning_description` AS `description`,
+        p.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
         vo.`gpu_memory` AS `gpu_memory`,
         vo.`computer_ram` AS `computer_ram`,
@@ -386,6 +388,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_knowledge_distillation` AS
         m_teacher.`name` AS `teacher_name`,
         m_student.`id` AS `student_id`,
         m_student.`name` AS `student_name`,
+        kd.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
         vo.`gpu_memory` AS `gpu_memory`,
         vo.`computer_ram` AS `computer_ram`,
@@ -407,12 +410,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_optimization` AS
         `model_optimization_id` AS `id`,
         vm.`id` AS `model_id`,
         vm.`name` AS `model_name`,
-        vo.`cpu` AS `cpu`,
-        vo.`gpu_memory` AS `gpu_memory`,
-        vo.`computer_ram` AS `computer_ram`,
-        vo.`cpu_frenquency` AS `cpu_frenquency`,
-        vo.`max_watts` AS `max_watts`,
-        vo.`date` AS `optimization_date`
+        vo.`id` AS `optimization_id`,
+        vo.`name` AS `optimization_name`
 
     FROM `pidl`.`model_optimization` as mo
     JOIN `pidl`.`v_model` AS vm ON vm.`id` = mo.`model_fk`
@@ -427,7 +426,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_model_task` AS
         `model_task_id` AS `id`,
         vm.`id` AS `model_id`,
         vm.`name` AS `model_name`,
-        vt.`name` AS `task`
+        vt.`id` AS `task_id`,
+        vt.`name` AS `task_name`
 
     FROM `pidl`.`model_task` as mt
     JOIN `pidl`.`v_task` AS vt ON vt.`id` = mt.`task_fk`
@@ -463,7 +463,6 @@ CREATE OR REPLACE VIEW `pidl`.`v_simplify_data_model` AS
                                                     WHERE `model_id` = vm.`id`
                                                     ORDER BY `date` DESC
                                                     LIMIT 1);
-    
 
 -- File: c:\Users\Utilisateur\Desktop\Projet\PIDL-Groupe2\database\stored_procedures.sql
 DELIMITER //

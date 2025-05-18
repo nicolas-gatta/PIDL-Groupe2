@@ -25,16 +25,6 @@ CREATE TABLE `pidl`.`role`(
 )DEFAULT CHARSET = utf8mb4;
 
 -- =====================================================
--- Table: precision
--- Description: Represents the precision level of models (e.g., FP32, FP16, INT8).
--- =====================================================
-CREATE TABLE `pidl`.`precision`(
-   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `precision_name` VARCHAR(50),
-   `precision_description` VARCHAR(150)
-)DEFAULT CHARSET = utf8mb4;
-
--- =====================================================
 -- Table: task
 -- Description: Lists tasks that models can perform (e.g., Image Classification, Object Detection).
 -- =====================================================
@@ -42,6 +32,16 @@ CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50),
    `task_description` VARCHAR(100)
+)DEFAULT CHARSET = utf8mb4;
+
+-- =====================================================
+-- Table: precision
+-- Description: Represents the precision level of models (e.g., FP32, FP16, INT8).
+-- =====================================================
+CREATE TABLE `pidl`.`precision`(
+   `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
+   `precision_name` VARCHAR(50),
+   `precision_description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
 -- =====================================================
