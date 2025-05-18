@@ -1,112 +1,180 @@
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
-from .models import Task, ModelTask, BasicDataModel, FullDataModel, Quantization, Pruning, KnowledgeDistillation, ModelOptimization, Optimization
+from .views_models import *
+
+class ModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelView
+        fields = [ 'id', 'name', 'architecture', 'parameters_m', 'layers',  
+                  'model_size_label', 'flops_b', 'model_size', 'training_time', 
+                  'creation_date', 'description', 'precision', 'creator']
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Task
-        fields = ['task_id', 'task_name', 'description']
+        model = TaskView
+        fields = ['id', 'name', 'description']
+        
+class EvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EvaluationView
+        fields = ['id', 'accuracy', 'final_loss', 'latency_ms', 'execution_time_ms', 'energy_consumption_mwh',
+                  'emissions_gco2eq','fps_gpu', 'map_50', 'map_50_95', 'date', 
+                  'cpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 'max_watts']
         
 class QuantizationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Quantization
-        fields = ['quantization_type', 'target_precision', 'optimization_fk']
+        model = QuantizationView
+        fields = ['type', 'target_precision', 'cpu', 'gpu_memory', 'computer_ram', 
+                  'cpu_frenquency', 'max_watts', 'optimization_date']
 
 
 class PruningSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Pruning
-        fields = ['pruning_strategie', 'pruning_rate', 'optimization_fk']
+        model = PruningView
+        fields = ['strategy', 'rate', 'cpu', 'gpu_memory', 'computer_ram', 
+                  'cpu_frenquency', 'max_watts', 'optimization_date']
         
 class KnowledgeDistillationSerializer(serializers.ModelSerializer):
-    student = serializers.StringRelatedField()
-    teacher = serializers.StringRelatedField()
+    student = serializers.SerializerMethodField()
+    teacher = serializers.SerializerMethodField()
 
     class Meta:
-        model = KnowledgeDistillation
-        fields = ['softmax_temperature', 'loss_function', 'student', 'teacher', 'optimization_fk']
+        model = KnowledgeDistillationView
+        fields = ['softmax_temperature', 'loss_function','cpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 
+                  'max_watts', 'optimization_date', 'student', 'teacher']
+    
+    @extend_schema_field(ModelSerializer)
+    def get_student(self, obj):
+        
+        model = ModelView.objects.get(id = obj.student_id)
+        
+        return ModelSerializer(model).data
+    
+    @extend_schema_field(ModelSerializer)
+    def get_teacher(self, obj):
+        
+        model = ModelView.objects.get(id = obj.teacher_id)
+        
+        return ModelSerializer(model).data
 
 class BasicDataModelSerializer(serializers.ModelSerializer):
     tasks = serializers.SerializerMethodField()
 
     class Meta:
         model = BasicDataModel
-        fields = [
-            'id', 'model_name', 'architecture', 'model_size_label', 'precision',
-            'model_size', 'layers', 'parameters_m', 'flops_b', 'fps_gpu',
-            'avg_emissions_gco2eq', 'avg_energy_mwh', 'map_50', 'map_50_95', 'training_time',
-            'creator', 'tasks']
-    @extend_schema_field(TaskSerializer(many=True))
+        fields = ['id', 'name', 'architecture', 'parameters_m', 'layers',  
+                  'model_size_label', 'flops_b', 'model_size', 'training_time', 'creation_date',  
+                  'precision', 'creator', 'fps_gpu', 'avg_emissions_gco2eq', 'avg_energy_mwh', 
+                  'map_50', 'map_50_95', 'tasks']
+        
+    @extend_schema_field(TaskSerializer(many = True))
     def get_tasks(self, obj):
-        
-        # Find all task IDs linked to this model
-        task_links = ModelTask.objects.filter(model_fk=obj.id)
-        
-        # Fetch the tasks
-        tasks = Task.objects.filter(task_id__in=[link.task_fk_id for link in task_links])
-        
-        # Serialize tasks
-        return TaskSerializer(tasks, many=True).data
+
+        model_tasks = ModelTaskView.objects.filter(model_id=obj.id)
+
+        tasks = TaskView.objects.filter(id__in=[model_task.task_id for model_task in model_tasks])
+
+        return TaskSerializer(tasks, many = True).data
     
 class FullDataModelSerializer(serializers.ModelSerializer):
     tasks = serializers.SerializerMethodField()
-    student = serializers.SerializerMethodField()
-    teacher = serializers.SerializerMethodField()
+    evaluations = serializers.SerializerMethodField()
+    students = serializers.SerializerMethodField()
+    teachers = serializers.SerializerMethodField()
     optimizations = serializers.SerializerMethodField()
     
     class Meta:
         model = FullDataModel
         fields = [
-                    'id', 'model_name', 'architecture','model_size_label', 'precision', 
-                    'layers', 'parameters_m', 'flops_b', 'model_size', 'training_time', 
-                    'creation_date', 'description', 'accuracy','final_loss', 'latency_ms',
-                    'fps_gpu','avg_emissions_gco2eq', 'avg_energy_mwh', 'map_50', 'map_50_95',
-                    'cpu_type', 'memory_gpu' , 'memory_gb' , 'cpu_frequency_ghz', 'max_power_watts', 
-                    'creator', 'tasks', 'student', 'teacher', 'optimizations']
-    @extend_schema_field(TaskSerializer(many=True))
+                    'id', 'name', 'architecture', 'parameters_m', 'layers',  
+                    'model_size_label', 'flops_b', 'model_size', 'training_time', 'creation_date',  
+                    'description', 'precision', 'creator', 'tasks', 'evaluations', 
+                    'students', 'teachers', 'optimizations']
+        
+    @extend_schema_field(TaskSerializer(many = True))
     def get_tasks(self, obj):
+
+        model_tasks = ModelTaskView.objects.filter(model_id=obj.id)
+
+        tasks = TaskView.objects.filter(id__in=[model_task.task_id for model_task in model_tasks])
+
+        return TaskSerializer(tasks, many = True).data
+    
+    @extend_schema_field(EvaluationSerializer(many = True))
+    def get_evaluations(self, obj):
         
-        # Find all task IDs linked to this model
-        task_links = ModelTask.objects.filter(model_fk=obj.id)
+        evaluations = EvaluationView.objects.filter(model_id = obj.id)
         
-        # Fetch the tasks
-        tasks = Task.objects.filter(task_id__in=[link.task_fk_id for link in task_links])
+        return EvaluationSerializer(evaluations, many = True).data
         
-        # Serialize tasks
-        return TaskSerializer(tasks, many=True).data
-    @extend_schema_field(KnowledgeDistillationSerializer(many=True))
-    def get_student(self, obj):
-        distillations = KnowledgeDistillation.objects.filter(student=obj.id)
-        return KnowledgeDistillationSerializer(distillations, many=True).data
-    @extend_schema_field(KnowledgeDistillationSerializer(many=True))
-    def get_teacher(self, obj):
-        distillations = KnowledgeDistillation.objects.filter(teacher=obj.id)
-        return KnowledgeDistillationSerializer(distillations, many=True).data
-    @extend_schema_field(serializers.ListSerializer(child=serializers.DictField()))
+    @extend_schema_field(ModelSerializer(many = True))
+    def get_students(self, obj):
+        
+        distillations = KnowledgeDistillationView.objects.filter(teacher_id = obj.id)
+        
+        student_ids = [student.student_id for student in distillations]
+        
+        students = ModelView.objects.filter(id__in = student_ids)
+        
+        return ModelSerializer(students, many = True).data
+    
+    @extend_schema_field(ModelSerializer(many = True))
+    def get_teachers(self, obj):
+        
+        distillations = KnowledgeDistillationView.objects.filter(student_id = obj.id)
+        
+        teacher_ids = [teacher.teacher_id for teacher in distillations]
+        
+        teachers = ModelView.objects.filter(id__in = teacher_ids)
+        
+        return ModelSerializer(teachers, many = True).data
+    
+    
+    @extend_schema_field(serializers.ListSerializer(child = serializers.DictField()))
     def get_optimizations(self, obj):
-        optimization_links = ModelOptimization.objects.filter(model_fk=obj.id)
-        optimization_ids = [opt.optimization_fk_id for opt in optimization_links]
-        optimizations = Optimization.objects.filter(optimization_id__in=optimization_ids)
+        
+        model_optimization = ModelOptimizationView.objects.filter(model_id=obj.id)
+        
+        optimization_ids = [opt.id for opt in model_optimization]
+        
+        optimizations = OptimizationView.objects.filter(id__in = optimization_ids)
 
         result = []
         for opt in optimizations:
+            
+            try:
+                
+                quantization = QuantizationView.objects.get(optimization_id=opt.id)
+            except QuantizationView.DoesNotExist:
+                quantization = None
+            
+            try:
+                pruning = PruningView.objects.get(optimization_id=opt.id)
+            except PruningView.DoesNotExist:
+                pruning = None
+
+            try:          
+                distillation = KnowledgeDistillationView.objects.get(optimization_id=opt.id)
+            except KnowledgeDistillationView.DoesNotExist:
+                distillation = None
+        
             opt_data = {
-                "optimization_id": opt.optimization_id,
+                "optimization_id": opt.id,
                 "name": opt.name,
-                "date": opt.optimization_date,
+                "date": opt.date,
                 "description": opt.description,
             }
-
-            if hasattr(opt, 'quantization'):
+            
+            if quantization:
                 opt_data['type'] = 'Quantization'
-                opt_data['details'] = QuantizationSerializer(opt.quantization).data
-            elif hasattr(opt, 'pruning'):
+                opt_data['details'] = QuantizationSerializer(quantization).data
+            elif pruning:
                 opt_data['type'] = 'Pruning'
-                opt_data['details'] = PruningSerializer(opt.pruning).data
-            elif hasattr(opt, 'knowledgedistillation'):
+                opt_data['details'] = PruningSerializer(pruning).data
+            elif distillation:
                 opt_data['type'] = 'KnowledgeDistillation'
-                opt_data['details'] = KnowledgeDistillationSerializer(opt.knowledgedistillation).data
+                opt_data['details'] = KnowledgeDistillationSerializer(distillation).data
             else:
                 opt_data['type'] = 'Unknown'
                 opt_data['details'] = {}

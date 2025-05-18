@@ -3,11 +3,11 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from .models import BasicDataModel, FullDataModel
+from .views_models import BasicDataModel, FullDataModel
 from .serializers import BasicDataModelSerializer, FullDataModelSerializer
 from rest_framework import status, generics
 from django_filters.rest_framework import DjangoFilterBackend
-from .filters import BasicDataFilter, FullDataFilter
+from .filters import BasicDataFilter
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 logger = logging.getLogger(__name__)
@@ -22,9 +22,11 @@ class FilteredModelListView(generics.ListAPIView):
     serializer_class = BasicDataModelSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = BasicDataFilter
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     
     def list(self, data):
-        response = super().list({"models":data})
+        response = super().list({data})
         return Response({"models":response.data}, status = response.status_code)
 
 @extend_schema(
@@ -36,12 +38,12 @@ class FilteredFullModelListView(generics.ListAPIView):
     queryset = FullDataModel.objects.all()
     serializer_class = FullDataModelSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = FullDataFilter
+    filterset_fields = ['id']
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     def list(self, data):
-        response = super().list({"models":data})
+        response = super().list({data})
         return Response({"models":response.data}, status = response.status_code)
     
 
