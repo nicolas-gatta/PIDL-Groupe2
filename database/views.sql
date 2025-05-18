@@ -1,94 +1,270 @@
--- 1. Vue principale : Détails des performances des modèles IA
+-- BASIC VIEWS --
 
-CREATE OR REPLACE VIEW `pidl`.`v_models` AS
+-- =====================================================
+-- View: resource
+-- Description: Represents the hardware or infrastructure used for model training and evaluation.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_resource` AS
+    SELECT
+        `resource_id` AS `id`,
+        `resource_name` AS `name`,
+        `cpu_type` AS `cpu`,
+        `memory_gpu` AS `gpu_memory`,
+        `memory_gb` AS `computer_ram`,
+        `cpu_frequency_ghz` AS `cpu_frenquency`,
+        `max_power_watts` AS `max_watts`,
+        `resource_description` AS `description`
+    FROM `pidl`.`resource`;
+
+-- =====================================================
+-- View: role
+-- Description: Defines different roles for users in the system (e.g., Admin, Researcher).
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_role` AS
+    SELECT
+        `role_id` AS `id`,
+        `role_name` AS `name`,
+        `role_description` AS `description`
+    FROM `pidl`.`role`;
+
+-- =====================================================
+-- View: precision
+-- Description: Represents the precision level of models (e.g., FP32, FP16, INT8).
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_precision` AS
+    SELECT
+        `precision_id` AS `id`,
+        `precision_name` AS `name`,
+        `precision_description` AS `description`
+    FROM `pidl`.`precision`;
+
+-- =====================================================
+-- View: task
+-- Description: Lists tasks that models can perform (e.g., Image Classification, Object Detection).
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_task` AS
+    SELECT
+        `task_id` AS `id`,
+        `task_name` AS `name`,
+        `task_description` AS `description`
+    FROM `pidl`.`task`;
+
+-- =====================================================
+-- View: optimization
+-- Description: Stores information about optimization techniques applied to models.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_optimization` AS
+    SELECT
+        `optimization_id` AS `id`,
+        `optimization_name` AS `name`,
+        `optimization_date` AS `date`,
+        `optimization_description` AS `description`, 
+        vre.`cpu` AS `cpu`,
+        vre.`gpu_memory` AS `gpu_memory`,
+        vre.`computer_ram` AS `computer_ram`,
+        vre.`cpu_frenquency` AS `cpu_frenquency`,
+        vre.`max_watts` AS `max_watts`
+    FROM `pidl`.`optimization` as o
+    JOIN `pidl`.`v_resource` AS vre ON vre.`id` = o.`resource_fk`;
+
+-- =====================================================
+-- View: user
+-- Description: Stores user information with extended attributes for authentication and roles.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_user` AS
+    SELECT
+        `user_id` AS `id`,
+        `first_name` AS `first_name`,
+        `last_name` AS `last_name`,
+        `email` AS `email`,
+        `last_login` AS `last_login`,
+        vr.`name` AS `role`
+    FROM `pidl`.`user` AS u
+    JOIN `pidl`.`v_role` AS vr ON vr.`id` = u.`role_fk`;
+
+-- =====================================================
+-- View: model
+-- Description: Contains details about machine learning models.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_model` AS
     SELECT 
 		m.`model_id` AS `id`,
-        m.`model_name` AS `model_name`,
+        m.`model_name` AS `name`,
         m.`architecture` AS `architecture`,
-        m.`model_size_label` AS `model_size_label`,
-        p.`precision_name` AS `precision`,
-        m.`layer_count` AS `layers`,
         m.`parameter_count` AS `parameters_m`,
+        m.`layer_count` AS `layers`,
+        m.`model_size_label` AS `model_size_label`,
         m.`flops_billion` AS `flops_b`,
         m.`model_size` AS `model_size`,
-        m.`creation_date` AS `creation_date`,
-        m.`description` AS `description`,
         m.`training_time` AS `training_time`,
-        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`
+        m.`creation_date` AS `creation_date`,
+        m.`model_description` AS `description`,
+        vp.`name` AS `precision`,
+        (SELECT CONCAT( vu.`first_name`, ' ', vu.`last_name`)) AS `creator`
         
     FROM `pidl`.`model` AS m
-    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
-    JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id` ;
+    JOIN `pidl`.`v_precision` AS vp ON  vp.`id` = m.`precision_fk`
+    JOIN `pidl`.`v_user` AS vu ON vu.`id` = m.`user_fk`;
 
--- 2. Vue : Distillation Professeur → Élève
+-- =====================================================
+-- View: evaluation
+-- Description: Records the evaluation results of models on specific resources.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_evaluation` AS
+    SELECT
+        `evaluation_id` AS `id`,
+        `accuracy` AS `accuracy`,
+        `final_loss` AS `final_loss`,
+        `latency_ms` AS `latency_ms`,
+        `execution_time_ms` AS `execution_time_ms`,
+        `energy_consumption_mwh` AS `energy_consumption_mwh`,
+        `emissions_gco2eq` AS `emissions_gco2eq`,
+        `fps_gpu` AS `fps_gpu`,
+        `map_50` AS `map_50`,
+        `map_50_95` AS `map_50_95`,
+        `evaluation_date` AS `date`,
+        vm.`id` AS `model_id`,
+        vm.`name` AS `model_name`,
+        vre.`cpu` AS `cpu`,
+        vre.`gpu_memory` AS `gpu_memory`,
+        vre.`computer_ram` AS `computer_ram`,
+        vre.`cpu_frenquency` AS `cpu_frenquency`,
+        vre.`max_watts` AS `max_watts`
 
-CREATE OR REPLACE VIEW `pidl`.`v_distillation_pairs` AS
+    FROM `pidl`.`evaluation` AS e
+    JOIN `pidl`.`v_resource` AS vre ON vre.`id` = e.`resource_fk`
+    JOIN `pidl`.`v_model` AS vm ON vm.`id` = e.`model_fk`;
+
+-- =====================================================
+-- View: quantization
+-- Description: Stores information about model quantization techniques.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_quantization` AS
+    SELECT
+        `quantization_id` AS `id`,
+        `quantization_type` AS `type`,
+        `quantization_description` AS `description`,
+        vp.`name` AS `target_precision`,
+        vo.`cpu` AS `cpu`,
+        vo.`gpu_memory` AS `gpu_memory`,
+        vo.`computer_ram` AS `computer_ram`,
+        vo.`cpu_frenquency` AS `cpu_frenquency`,
+        vo.`max_watts` AS `max_watts`,
+        vo.`date` AS `optimization_date`
+
+    FROM `pidl`.`quantization` AS q 
+    JOIN `pidl`.`v_precision` AS vp ON vp.`id` = q.`precision_fk`
+    JOIN `pidl`.`v_optimization` AS vo ON vo.`id` = q.`optimization_fk`;
+
+-- =====================================================
+-- View: pruning
+-- Description: Holds information about model pruning strategies.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_pruning` AS
+    SELECT
+        `pruning_id` AS `id`,
+        `pruning_strategy` AS `strategy`,
+        `pruning_rate` AS `rate`,
+        `pruning_description` AS `description`,
+        vo.`cpu` AS `cpu`,
+        vo.`gpu_memory` AS `gpu_memory`,
+        vo.`computer_ram` AS `computer_ram`,
+        vo.`cpu_frenquency` AS `cpu_frenquency`,
+        vo.`max_watts` AS `max_watts`,
+        vo.`date` AS `optimization_date`
+
+    FROM `pidl`.`pruning` AS p
+    JOIN `pidl`.`v_optimization` AS vo ON vo.`id` = p.`optimization_fk`;
+
+-- =====================================================
+-- View: knowledge_distillation
+-- Description: Represents knowledge distillation configurations applied to models.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_knowledge_distillation` AS
+    SELECT
+        `knowledged_distillation_id` AS `id`,
+        `softmax_temperature` AS `softmax_temperature`,
+        `loss_function` AS `loss_function`,
+        `knowledge_distillation_description` AS `description`,
+        m_teacher.`id` AS `teacher_id`,
+        m_teacher.`name` AS `teacher_name`,
+        m_student.`id` AS `student_id`,
+        m_student.`name` AS `student_name`,
+        vo.`cpu` AS `cpu`,
+        vo.`gpu_memory` AS `gpu_memory`,
+        vo.`computer_ram` AS `computer_ram`,
+        vo.`cpu_frenquency` AS `cpu_frenquency`,
+        vo.`max_watts` AS `max_watts`,
+        vo.`date` AS `optimization_date`
+
+    FROM `pidl`.`knowledge_distillation` as kd
+    JOIN `pidl`.`v_model` AS m_teacher ON m_teacher.`id` = kd.`teacher`
+    JOIN `pidl`.`v_model` AS m_student ON m_student.`id`= kd.`student`
+    JOIN `pidl`.`v_optimization` AS vo ON vo.`id` = kd.`optimization_fk`;
+
+-- =====================================================
+-- View: model_optimization
+-- Description: Represents the many-to-many relationship between models and optimizations.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_model_optimization` AS
+    SELECT
+        `model_optimization_id` AS `id`,
+        vm.`id` AS `model_id`,
+        vm.`name` AS `model_name`,
+        vo.`cpu` AS `cpu`,
+        vo.`gpu_memory` AS `gpu_memory`,
+        vo.`computer_ram` AS `computer_ram`,
+        vo.`cpu_frenquency` AS `cpu_frenquency`,
+        vo.`max_watts` AS `max_watts`,
+        vo.`date` AS `optimization_date`
+
+    FROM `pidl`.`model_optimization` as mo
+    JOIN `pidl`.`v_model` AS vm ON vm.`id` = mo.`model_fk`
+    JOIN `pidl`.`v_optimization` AS vo ON vo.`id` = mo.`optimization_fk`;
+
+-- =====================================================
+-- View: model_task
+-- Description: Represents the many-to-many relationship between models and tasks.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_model_task` AS
+    SELECT
+        `model_task_id` AS `id`,
+        vm.`id` AS `model_id`,
+        vm.`name` AS `model_name`,
+        vt.`name` AS `task`
+
+    FROM `pidl`.`model_task` as mt
+    JOIN `pidl`.`v_task` AS vt ON vt.`id` = mt.`task_fk`
+    JOIN `pidl`.`v_model` AS vm ON vm.`id` = mt.`model_fk`;
+
+-- ADVANCED VIEWS --
+-- =====================================================
+-- View: simplify_data_model
+-- Description: Represents the simplify informations of a model for the table view of the frontend.
+-- =====================================================
+CREATE OR REPLACE VIEW `pidl`.`v_simplify_data_model` AS
     SELECT 
-        kd.`knowledged_distillation_id`,
-        m_teacher.`model_name` AS teacher_model,
-        m_student.`model_name` AS student_model,
-        kd.`softmax_temperature`,
-        kd.`loss_function`
-    FROM `pidl`.`knowledge_distillation` AS kd
-    JOIN `pidl`.`model` AS m_teacher ON kd.`teacher` = m_teacher.`model_id`
-    JOIN `pidl`.`model` AS m_student ON kd.`student` = m_student.`model_id`;
+		vm.`id` AS `id`,
+        vm.`name` AS `name`,
+        vm.`architecture` AS `architecture`,
+        vm.`parameters_m` AS `parameters_m`,
+        vm.`layers` AS `layers`,
+        vm.`model_size_label` AS `model_size_label`,
+        vm.`flops_b` AS `flops_b`,
+        vm.`model_size` AS `model_size`,
+        vm.`training_time` AS `training_time`,
+        vm.`creation_date` AS `creation_date`,
+        vm.`precision` AS `precision`,
+        vm.`creator` AS `creator`,
+        ve.`fps_gpu` AS `fps_gpu`,
+        ve.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
+        ve.`energy_consumption_mwh` AS `avg_energy_mwh`,
+        ve.`map_50` AS `map_50`,
+        ve.`map_50_95` AS `map_50_95`
 
--- 3. Vue : performances énergétiques et précisions de modèles
-CREATE OR REPLACE VIEW `pidl`.`v_model_energy_performance` AS
-    SELECT 
-        m.`model_id` AS `id`,
-        m.`model_name` AS `model_name`,
-        m.`architecture` AS `architecture`,
-        m.`model_size_label` AS `model_size_label`,
-        p.`precision_name` AS `precision`,
-        m.`layer_count` AS `layers`,
-        m.`parameter_count` AS `parameters_m`,
-        m.`flops_billion` AS `flops_b`,
-        m.`model_size` AS `model_size`,
-        m.`training_time` AS `training_time`,
-        e.`fps_gpu` AS `fps_gpu`,
-        e.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
-        e.`energy_consumption_mwh` AS `avg_energy_mwh`,
-        e.`map_50` AS `map_50`,
-        e.`map_50_95` AS `map_50_95`,
-        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`
-
-    FROM `pidl`.`model` AS m
-    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
-    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
-    JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id`;
-
-CREATE OR REPLACE VIEW `pidl`.`v_model_full_data` AS
-    SELECT 
-		m.`model_id` AS `id`,
-        m.`model_name` AS `model_name`,
-        m.`architecture` AS `architecture`,
-        m.`model_size_label` AS `model_size_label`,
-        p.`precision_name` AS `precision`,
-        m.`layer_count` AS `layers`,
-        m.`parameter_count` AS `parameters_m`,
-        m.`flops_billion` AS `flops_b`,
-        m.`model_size` AS `model_size`,
-        m.`training_time` AS `training_time`,
-        m.`creation_date` AS `creation_date`,
-        m.`description` AS `description`,
-        e.`accuracy` AS `accuracy`,
-        e.`final_loss` AS `final_loss`,
-        e.`latency_ms` AS `latency_ms`,
-        e.`fps_gpu` AS `fps_gpu`,
-        e.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
-        e.`energy_consumption_mwh` AS `avg_energy_mwh`,
-        e.`map_50` AS `map_50`,
-        e.`map_50_95` AS `map_50_95`,
-        (SELECT CONCAT( u.`first_name`, ' ', u.`last_name`)) AS `creator`,
-        r.`cpu_type` AS `cpu_type`,
-        r.`memory_gpu` AS `memory_gpu`,
-        r.`memory_gb` AS `memory_gb`,
-        r.`cpu_frequency_ghz` AS `cpu_frequency_ghz`,
-        r.`max_power_watts` AS `max_power_watts`
-
-    FROM `pidl`.`model` AS m
-    JOIN `pidl`.`evaluation` AS e ON m.`model_id` = e.`model_fk`
-    JOIN `pidl`.`resource` AS r ON r.`resource_id` = e.`resource_fk`
-    JOIN `pidl`.`precision` AS p ON m.`precision_fk` = p.`precision_id`
-    JOIN `pidl`.`user` AS u ON m.`user_fk` = u.`user_id`;
+    FROM `pidl`.`v_model` AS vm
+    JOIN `pidl`.`v_evaluation` AS ve ON ve.`id` = (SELECT `id` FROM `pidl`.`v_evaluation`
+                                                    WHERE `model_id` = vm.`id`
+                                                    ORDER BY `date` DESC
+                                                    LIMIT 1);
+    
