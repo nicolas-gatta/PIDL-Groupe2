@@ -4,7 +4,7 @@ from .models import CustomUser, Role
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
-        fields = ['role_id', 'role_name', 'description']
+        fields = ['role_id', 'role_name', 'role_description']
 
 class CustomUserSerializer(serializers.ModelSerializer):
     role_fk = RoleSerializer()
