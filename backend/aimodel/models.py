@@ -138,5 +138,3 @@ class ModelTask(models.Model):
     class Meta:
         managed = False
         db_table = 'model_task'
-        
-#class FullDataModel(models.Model):

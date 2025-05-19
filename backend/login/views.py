@@ -8,6 +8,7 @@ from rest_framework import status
 
 from login.serializers import CustomUserSerializer, RegisterInputSerializer, LoginInputSerializer
 from login.models import CustomUser, Role
+from utils.checks import group_and_super_user_checks
 
 from django.shortcuts import render
 from drf_spectacular.utils import extend_schema, OpenApiResponse
@@ -24,12 +25,13 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
+    
     username = request.data.get("username")
     password = request.data.get("password")
     
-    user = authenticate(username=username, password=password)
+    user = authenticate(username = username, password = password)
     if user:
-        token, _ = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user = user)
         serializer = CustomUserSerializer(instance = user)
         return Response({'token': token.key, "user": serializer.data}, status = status.HTTP_200_OK)
     else:
@@ -62,6 +64,7 @@ def logout_view(request):
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@group_and_super_user_checks()
 def register_view(request):
     email = request.data.get("email")
     password = request.data.get("password")
@@ -70,6 +73,9 @@ def register_view(request):
 
     if not email or not password:
         return Response({"error": "Email et mot de passe requis."}, status = status.HTTP_400_BAD_REQUEST) 
+    
+    if not first_name or not last_name:
+        return Response({"error": "Nom et prénom requis"}, status = status.HTTP_400_BAD_REQUEST)
     
     try:
 
@@ -82,6 +88,7 @@ def register_view(request):
         )
 
         serializer = CustomUserSerializer(user)
+        
         return Response({
             "message": "inscription réussie.",
             "user": serializer.data

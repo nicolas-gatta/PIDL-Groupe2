@@ -11,7 +11,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['user_id', 'first_name', 'last_name', 'email', 'is_active', 'is_staff', 'role_fk']
+        fields = ['user_id', 'first_name', 'last_name', 'email', 'is_active', 'is_staff', 'is_superuser', 'role_fk']
 
 
 class LoginInputSerializer(serializers.Serializer):

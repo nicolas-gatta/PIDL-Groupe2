@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
-from .views_models import *
+from .models_views import *
 
 class ModelSerializer(serializers.ModelSerializer):
     class Meta:
