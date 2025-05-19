@@ -11,7 +11,7 @@ from django.db import models
 class Role(models.Model):
     role_id = models.AutoField(primary_key=True)
     role_name = models.CharField(max_length=50, blank=True, null=True)
-    description = models.CharField(max_length=150, blank=True, null=True)
+    role_description = models.CharField(max_length=150, blank=True, null=True)
 
     class Meta:
         db_table = 'role'
@@ -41,6 +41,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
