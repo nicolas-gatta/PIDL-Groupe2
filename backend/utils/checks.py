@@ -32,3 +32,14 @@ def group_and_super_user_checks(group_names = []):
         return _wrapper
     
     return inner
+
+def checks_and_get_required_fields(data, required_fields):
+    missing_fields = [field for field in required_fields if not data.get(field)]
+    print(missing_fields)
+    if missing_fields:
+        return Response({"error": f"Missing fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
+    return {field: data.get(field) for field in required_fields}
+
+def get_present_fields(data, present_field):
+    present_fields = {field: data.get(field) for field in present_field if data.get(field) not in [None, '', [], {}]}
+    return present_fields

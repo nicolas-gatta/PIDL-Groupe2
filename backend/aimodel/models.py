@@ -7,9 +7,10 @@ class Resource(models.Model):
     resource_id = models.AutoField(primary_key=True)
     resource_name = models.CharField(max_length=50, blank=True, null=True)
     cpu_type = models.CharField(max_length=50, blank=True, null=True)
+    gpu_type = models.CharField(max_length=50, blank=True, null=True)
     memory_gpu = models.IntegerField(blank=True, null=True)
     memory_gb = models.IntegerField(blank=True, null=True)
-    cpu_frequency_ghz = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
+    cpu_frequency_ghz = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     max_power_watts = models.IntegerField(blank=True, null=True)
     resource_description = models.CharField(max_length=100, blank=True, null=True)
 

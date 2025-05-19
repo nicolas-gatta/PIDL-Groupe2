@@ -1,11 +1,11 @@
 -- =====================================================
 -- Insert Data: resource
 -- =====================================================
-INSERT INTO `pidl`.`resource` (`resource_id`, `resource_name`, `cpu_type`, `memory_gpu` , `memory_gb` , `cpu_frequency_ghz` , `max_power_watts`, `resource_description`) 
+INSERT INTO `pidl`.`resource` (`resource_id`, `resource_name`, `cpu_type` , `memory_gb` , `gpu_type`, `memory_gpu`, `cpu_frequency_ghz` , `max_power_watts`, `resource_description`) 
 VALUES 
-(1, 'GPU Workstation A', 'Intel Xeon', 16, 64, 3.60, 450, 'High-performance training workstation'),
-(2, 'Edge Device X', 'ARM Cortex', 4, 8, 1.80, 45, 'Low-power evaluation device'),
-(3, 'Cloud Server Z', 'AMD EPYC', 32, 256, 2.90, 700, 'Cloud-based optimization server');
+(1, 'GPU Workstation A', 'Intel Xeon', 64, "MSI GeForce RTX 5060 Ti 16G GAMING OC", 16, 3.60, 450, 'High-performance training workstation'),
+(2, 'Edge Device X', 'ARM Cortex', 8, "MSI GeForce GTX 1650 GAMING X 4GB", 4, 1.80, 45, 'Low-power evaluation device'),
+(3, 'Cloud Server Z', 'AMD EPYC', 256, "GIGABYTE AORUS GeForce RTX 5090 MASTER 32G", 32, 2.90, 700, 'Cloud-based optimization server');
 
 -- =====================================================
 -- Insert Data: role

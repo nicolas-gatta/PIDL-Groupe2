@@ -10,11 +10,12 @@ CREATE DATABASE `pidl`;
 -- =====================================================
 CREATE TABLE `pidl`.`resource`(
    `resource_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `resource_name` VARCHAR(50),
+   `resource_name` VARCHAR(50) UNIQUE,
    `cpu_type` VARCHAR(50),
-   `memory_gpu` INT,
    `memory_gb` INT,
-   `cpu_frequency_ghz` DECIMAL(4,2),
+   `gpu_type` VARCHAR(50),
+   `memory_gpu` INT,
+   `cpu_frequency_ghz` DECIMAL(10, 2),
    `max_power_watts` INT,
    `resource_description` VARCHAR(100)
 )DEFAULT CHARSET = utf8mb4;
@@ -25,7 +26,7 @@ CREATE TABLE `pidl`.`resource`(
 -- =====================================================
 CREATE TABLE `pidl`.`role`(
    `role_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `role_name` VARCHAR(50),
+   `role_name` VARCHAR(50) UNIQUE,
    `role_description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
@@ -35,7 +36,7 @@ CREATE TABLE `pidl`.`role`(
 -- =====================================================
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `task_name` VARCHAR(50),
+   `task_name` VARCHAR(50) UNIQUE,
    `task_description` VARCHAR(100)
 )DEFAULT CHARSET = utf8mb4;
 
@@ -45,7 +46,7 @@ CREATE TABLE `pidl`.`task`(
 -- =====================================================
 CREATE TABLE `pidl`.`precision`(
    `precision_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `precision_name` VARCHAR(50),
+   `precision_name` VARCHAR(50) UNIQUE,
    `precision_description` VARCHAR(150)
 )DEFAULT CHARSET = utf8mb4;
 
@@ -55,7 +56,7 @@ CREATE TABLE `pidl`.`precision`(
 -- =====================================================
 CREATE TABLE `pidl`.`optimization`(
    `optimization_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `optimization_name` VARCHAR(100),
+   `optimization_name` VARCHAR(100) UNIQUE,
    `optimization_date` DATETIME,
    `optimization_description` VARCHAR(100),
    `resource_fk` INT NOT NULL,
@@ -88,11 +89,11 @@ CREATE TABLE `pidl`.`model`(
    `model_id` INT PRIMARY KEY AUTO_INCREMENT,
    `model_name` VARCHAR(100) UNIQUE,
    `architecture` VARCHAR(100),
-   `parameter_count` DECIMAL(6,2),          -- ex: 3.01, 11.13, 25.85
+   `parameter_count` FLOAT,          -- ex: 3.01, 11.13, 25.85
    `layer_count` INT,
    `model_size_label` VARCHAR(1),           -- ex: 'n', 's', 'm'
-   `flops_billion` DECIMAL(6,2),            -- FLOPS in billions
-   `model_size` DECIMAL(6,2),               -- same name, kept if needed elsewhere
+   `flops_billion` FLOAT,            -- FLOPS in billions
+   `model_size` FLOAT,               -- same name, kept if needed elsewhere
    `training_time` INT,
    `creation_date` DATETIME,
    `model_description` VARCHAR(100),
@@ -108,15 +109,15 @@ CREATE TABLE `pidl`.`model`(
 -- =====================================================
 CREATE TABLE `pidl`.`evaluation`(
    `evaluation_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `accuracy` DECIMAL(5,4),                 -- ex: 0.8185
-   `final_loss` DECIMAL(4,3),
-   `latency_ms` DECIMAL(6,2),
-   `execution_time_ms` DECIMAL(6,2),
-   `energy_consumption_mwh` DECIMAL(6,4),   -- ex: 0.1346
-   `emissions_gco2eq` DECIMAL(8,5),         -- ex: 0.0262
-   `fps_gpu` DECIMAL(8,2),                  -- ex: 910.80
-   `map_50` DECIMAL(5,4),                   -- ex: 0.847
-   `map_50_95` DECIMAL(5,4),                -- ex: 0.6655
+   `accuracy` FLOAT,                 -- ex: 0.8185
+   `final_loss` FLOAT,
+   `latency_ms` FLOAT,
+   `execution_time_ms` FLOAT,
+   `energy_consumption_mwh` FLOAT,   -- ex: 0.1346
+   `emissions_gco2eq` FLOAT,         -- ex: 0.0262
+   `fps_gpu` FLOAT,                  -- ex: 910.80
+   `map_50` FLOAT,                   -- ex: 0.847
+   `map_50_95` FLOAT,                -- ex: 0.6655
    `evaluation_date` DATETIME NOT NULL,
    `resource_fk` INT NOT NULL,
    `model_fk` INT NOT NULL,
@@ -133,7 +134,7 @@ CREATE TABLE `pidl`.`quantization`(
    `quantization_type` VARCHAR(50),
    `quantization_description` VARCHAR(100),
    `precision_fk` INT NOT NULL,
-   `optimization_fk` INT NOT NULL,
+   `optimization_fk` INT NOT NULL UNIQUE,
    CONSTRAINT `FK_quantization_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE,
    CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
@@ -145,7 +146,7 @@ CREATE TABLE `pidl`.`quantization`(
 CREATE TABLE `pidl`.`pruning`(
    `pruning_id` INT PRIMARY KEY AUTO_INCREMENT,
    `pruning_strategy` VARCHAR(50),
-   `pruning_rate` DECIMAL(3,2),
+   `pruning_rate` FLOAT,
    `pruning_description` VARCHAR(100),
    `optimization_fk` INT NOT NULL UNIQUE,
    CONSTRAINT `FK_pruning_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
@@ -157,7 +158,7 @@ CREATE TABLE `pidl`.`pruning`(
 -- =====================================================
 CREATE TABLE `pidl`.`knowledge_distillation`(
    `knowledged_distillation_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `softmax_temperature` DECIMAL(3,1),
+   `softmax_temperature` FLOAT,
    `loss_function` VARCHAR(50),
    `knowledge_distillation_description` VARCHAR(100),
    `student` INT NOT NULL,
@@ -205,6 +206,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_resource` AS
         `resource_id` AS `id`,
         `resource_name` AS `name`,
         `cpu_type` AS `cpu`,
+        `gpu_type` AS `gpu`,
         `memory_gpu` AS `gpu_memory`,
         `memory_gb` AS `computer_ram`,
         `cpu_frequency_ghz` AS `cpu_frenquency`,
@@ -256,6 +258,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_optimization` AS
         `optimization_date` AS `date`,
         `optimization_description` AS `description`, 
         vre.`cpu` AS `cpu`,
+        vre.`gpu` AS `gpu`,
         vre.`gpu_memory` AS `gpu_memory`,
         vre.`computer_ram` AS `computer_ram`,
         vre.`cpu_frenquency` AS `cpu_frenquency`,
@@ -322,6 +325,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_evaluation` AS
         vm.`id` AS `model_id`,
         vm.`name` AS `model_name`,
         vre.`cpu` AS `cpu`,
+        vre.`gpu` AS `gpu`,
         vre.`gpu_memory` AS `gpu_memory`,
         vre.`computer_ram` AS `computer_ram`,
         vre.`cpu_frenquency` AS `cpu_frenquency`,
@@ -343,6 +347,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_quantization` AS
         vp.`name` AS `target_precision`,
         q.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
+        vo.`gpu` AS `gpu`,
         vo.`gpu_memory` AS `gpu_memory`,
         vo.`computer_ram` AS `computer_ram`,
         vo.`cpu_frenquency` AS `cpu_frenquency`,
@@ -365,6 +370,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_pruning` AS
         `pruning_description` AS `description`,
         p.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
+        vo.`gpu` AS `gpu`,
         vo.`gpu_memory` AS `gpu_memory`,
         vo.`computer_ram` AS `computer_ram`,
         vo.`cpu_frenquency` AS `cpu_frenquency`,
@@ -390,6 +396,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_knowledge_distillation` AS
         m_student.`name` AS `student_name`,
         kd.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
+        vo.`gpu` AS `gpu`,
         vo.`gpu_memory` AS `gpu_memory`,
         vo.`computer_ram` AS `computer_ram`,
         vo.`cpu_frenquency` AS `cpu_frenquency`,
@@ -473,11 +480,11 @@ DELIMITER ;
 -- =====================================================
 -- Insert Data: resource
 -- =====================================================
-INSERT INTO `pidl`.`resource` (`resource_id`, `resource_name`, `cpu_type`, `memory_gpu` , `memory_gb` , `cpu_frequency_ghz` , `max_power_watts`, `resource_description`) 
+INSERT INTO `pidl`.`resource` (`resource_id`, `resource_name`, `cpu_type` , `memory_gb` , `gpu_type`, `memory_gpu`, `cpu_frequency_ghz` , `max_power_watts`, `resource_description`) 
 VALUES 
-(1, 'GPU Workstation A', 'Intel Xeon', 16, 64, 3.60, 450, 'High-performance training workstation'),
-(2, 'Edge Device X', 'ARM Cortex', 4, 8, 1.80, 45, 'Low-power evaluation device'),
-(3, 'Cloud Server Z', 'AMD EPYC', 32, 256, 2.90, 700, 'Cloud-based optimization server');
+(1, 'GPU Workstation A', 'Intel Xeon', 64, "MSI GeForce RTX 5060 Ti 16G GAMING OC", 16, 3.60, 450, 'High-performance training workstation'),
+(2, 'Edge Device X', 'ARM Cortex', 8, "MSI GeForce GTX 1650 GAMING X 4GB", 4, 1.80, 45, 'Low-power evaluation device'),
+(3, 'Cloud Server Z', 'AMD EPYC', 256, "GIGABYTE AORUS GeForce RTX 5090 MASTER 32G", 32, 2.90, 700, 'Cloud-based optimization server');
 
 -- =====================================================
 -- Insert Data: role

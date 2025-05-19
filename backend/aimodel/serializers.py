@@ -20,19 +20,19 @@ class EvaluationSerializer(serializers.ModelSerializer):
         model = EvaluationView
         fields = ['id', 'accuracy', 'final_loss', 'latency_ms', 'execution_time_ms', 'energy_consumption_mwh',
                   'emissions_gco2eq','fps_gpu', 'map_50', 'map_50_95', 'date', 
-                  'cpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 'max_watts']
+                  'cpu', 'gpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 'max_watts']
         
 class QuantizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuantizationView
-        fields = ['type', 'target_precision', 'cpu', 'gpu_memory', 'computer_ram', 
+        fields = ['type', 'target_precision', 'gpu', 'cpu', 'gpu_memory', 'computer_ram', 
                   'cpu_frenquency', 'max_watts', 'optimization_date']
 
 
 class PruningSerializer(serializers.ModelSerializer):
     class Meta:
         model = PruningView
-        fields = ['strategy', 'rate', 'cpu', 'gpu_memory', 'computer_ram', 
+        fields = ['strategy', 'rate', 'gpu', 'cpu', 'gpu_memory', 'computer_ram', 
                   'cpu_frenquency', 'max_watts', 'optimization_date']
         
 class KnowledgeDistillationSerializer(serializers.ModelSerializer):
@@ -41,7 +41,7 @@ class KnowledgeDistillationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KnowledgeDistillationView
-        fields = ['softmax_temperature', 'loss_function','cpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 
+        fields = ['softmax_temperature', 'loss_function','cpu', 'gpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 
                   'max_watts', 'optimization_date', 'student', 'teacher']
     
     @extend_schema_field(ModelSerializer)
