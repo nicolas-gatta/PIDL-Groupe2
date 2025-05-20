@@ -29,6 +29,7 @@ class ModelAbstract(models.Model):
     creation_date = models.DateTimeField(blank=False, null=False)
     description = models.TextField(blank=True, null=True)
     precision = models.CharField(max_length=50, blank=False, null=False)
+    user_id = models.IntegerField()
     creator = models.CharField(max_length=100, blank=False, null=False)
     
     class Meta:
@@ -171,6 +172,7 @@ class ModelTaskView(models.Model):
 
 class BasicDataModel(ModelAbstract):
     description = None
+    user_id = models.IntegerField()
     fps_gpu = models.FloatField(blank=False, null=False)
     avg_emissions_gco2eq = models.FloatField(blank=False, null=False)
     avg_energy_mwh = models.FloatField(blank=False, null=False)

@@ -8,11 +8,16 @@ class ModelSerializer(serializers.ModelSerializer):
         model = ModelView
         fields = [ 'id', 'name', 'architecture', 'parameters_m', 'layers',  
                   'model_size_label', 'flops_b', 'model_size', 'training_time', 
-                  'creation_date', 'description', 'precision', 'creator']
+                  'creation_date', 'description', 'precision', 'user_id', 'creator']
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskView
+        fields = ['id', 'name', 'description']
+        
+class PrecisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrecisionView
         fields = ['id', 'name', 'description']
         
 class EvaluationSerializer(serializers.ModelSerializer):

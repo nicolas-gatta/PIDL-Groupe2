@@ -102,6 +102,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_model` AS
         m.`creation_date` AS `creation_date`,
         m.`model_description` AS `description`,
         vp.`name` AS `precision`,
+        m.`user_fk` AS `user_id`,
         (SELECT CONCAT( vu.`first_name`, ' ', vu.`last_name`)) AS `creator`
         
     FROM `pidl`.`model` AS m
@@ -261,6 +262,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_simplify_data_model` AS
         vm.`training_time` AS `training_time`,
         vm.`creation_date` AS `creation_date`,
         vm.`precision` AS `precision`,
+        vm.`user_id` AS `user_id`, 
         vm.`creator` AS `creator`,
         ve.`fps_gpu` AS `fps_gpu`,
         ve.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
