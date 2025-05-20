@@ -51,7 +51,7 @@ CREATE TABLE `pidl`.`precision`(
 -- =====================================================
 CREATE TABLE `pidl`.`optimization`(
    `optimization_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `optimization_name` VARCHAR(100) UNIQUE,
+   `optimization_name` VARCHAR(100),
    `optimization_date` DATETIME,
    `optimization_description` VARCHAR(100),
    `resource_fk` INT NOT NULL,

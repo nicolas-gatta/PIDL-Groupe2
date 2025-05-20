@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from .models_views import BasicDataModel, FullDataModel
-from .serializers import BasicDataModelSerializer, FullDataModelSerializer
+from .models_views import BasicDataModel, FullDataModel, TaskView, PrecisionView
+from .serializers import BasicDataModelSerializer, FullDataModelSerializer, TaskSerializer, PrecisionSerializer
 from rest_framework import status, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import BasicDataFilter
@@ -13,7 +13,6 @@ from utils.checks import group_and_super_user_checks, checks_and_get_required_fi
 from django.utils import timezone
 from .models import Model, Precision, Resource, Task, ModelTask, Evaluation, Optimization, ModelOptimization, Quantization, Pruning, KnowledgeDistillation
 from login.models import CustomUser
-import json
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 @extend_schema(
     summary="Filtered models (simplified view)",
     description="Filtering of simplified models with all parameters defined in BasicDataModel.",
-    responses=BasicDataModel
+    responses = BasicDataModel
 )
 class FilteredModelListView(generics.ListAPIView):
     queryset = BasicDataModel.objects.all()
@@ -51,7 +50,47 @@ class FilteredFullModelListView(generics.ListAPIView):
     def list(self, data):
         response = super().list({data})
         return Response({"models":response.data}, status = response.status_code)
-    
+
+@extend_schema(
+    summary="List of Precisions",
+    description="Returns all the precision.",
+    responses={
+        200: FullDataModelSerializer(many=True),
+        403: OpenApiResponse(description="Login Required"),
+        404: OpenApiResponse(description="Precision Not Found")
+    }
+)
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_all_precisions(request):
+    try:
+        precisions = PrecisionView.objects.all()
+        serializer = PrecisionSerializer(precisions, many = True)
+        return Response({"precisions": serializer.data}, status = status.HTTP_200_OK)
+    except PrecisionView.DoesNotExist:
+        return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
+
+@extend_schema(
+    summary="List of Tasks",
+    description="Returns all the task.",
+    responses={
+        200: FullDataModelSerializer(many=True),
+        403: OpenApiResponse(description="Login Required"),
+        404: OpenApiResponse(description="Tasks Not Found")
+    }
+)
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_all_tasks(request):
+    try:
+        tasks = TaskView.objects.all()
+        serializer = TaskSerializer(tasks, many = True)
+        return Response({"tasks": serializer.data}, status = status.HTTP_200_OK)
+    except TaskView.DoesNotExist:
+        return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
+ 
 
 @extend_schema(
     summary="List of basic models",
@@ -131,13 +170,13 @@ def create_model(request):
     
     model_instance = create_model_instance(data = model_data)
     
-    tasks_instance = get_tasks(data = model_data)
+    tasks_instance = get_all_tasks_instance(data = model_data)
     
-    _ = create_model_tasks(model_instance, tasks_instance)
+    _ = create_model_tasks_instance(model_instance, tasks_instance)
     
-    evaluations_resource_instance = create_or_get_resource(data = evaluations_data)
+    evaluations_resource_instance = create_or_get_resource_instance(data = evaluations_data)
     
-    _ = create_evaluation(data = evaluations_data, model_instance = model_instance, resources_instance = evaluations_resource_instance)
+    _ = create_evaluation_instance(data = evaluations_data, model_instance = model_instance, resources_instance = evaluations_resource_instance)
     
     
     facultative_field = get_present_fields(data = request.data, present_field = ["optimizations"])
@@ -160,22 +199,22 @@ def create_model(request):
         
         print(optimization_data["resources_name"])
         
-        optimizations_resource_instance = create_or_get_resource(data = optimization_data)
+        optimizations_resource_instance = create_or_get_resource_instance(data = optimization_data)
         
-        optimizations_instance = create_optimization(data = optimization_data, resources_instance = optimizations_resource_instance)
+        optimizations_instance = create_optimization_instance(data = optimization_data, resources_instance = optimizations_resource_instance)
         
-        _ = create_model_optimization(model_instance = model_instance, optimizations_instance = optimizations_instance)
+        _ = create_model_optimization_instance(model_instance = model_instance, optimizations_instance = optimizations_instance)
         
-        if "Quantization" in optimization_data["optimizations_type"]:
+        if "Quantization" in optimization_data["types"]:
             optimization_data.update(checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_quantization))
             
-        if "Pruning" in optimization_data["optimizations_type"]:
+        if "Pruning" in optimization_data["types"]:
             optimization_data.update(checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_pruning))
             
-        if "Knowledge Distillation" in optimization_data["optimizations_type"]:
+        if "Knowledge Distillation" in optimization_data["types"]:
             optimization_data.update(checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_knwoledge))
                 
-        for index, optimization_type in enumerate(optimization_data["optimizations_type"]):
+        for index, optimization_type in enumerate(optimization_data["types"]):
             if optimization_type == "Quantization":
                 optimization_quantization_instance.append(optimizations_instance[index])
                 
@@ -186,13 +225,13 @@ def create_model(request):
                 optimization_knowledge_instance.append(optimizations_instance[index])
                 
         if (optimization_quantization_instance != []):
-            create_quantization(data = optimization_data, optimizations_instance = optimization_quantization_instance)
+            create_quantization_instance(data = optimization_data, optimizations_instance = optimization_quantization_instance)
             
         if (optimization_pruning_instance != []):
-            create_pruning(data = optimization_data, optimizations_instance = optimization_quantization_instance)
+            create_pruning_instance(data = optimization_data, optimizations_instance = optimization_quantization_instance)
             
         if (optimization_knowledge_instance != []):
-            create_knowledge_distillation(data = optimization_data, optimizations_instance = optimization_quantization_instance, model_instance = model_instance)
+            create_knowledge_distillation_instance(data = optimization_data, optimizations_instance = optimization_quantization_instance, model_instance = model_instance)
         
     return Response({"message": "Model Created Successfully"}, status = status.HTTP_200_OK)
 
@@ -254,7 +293,7 @@ def create_model_instance(data):
         precision_fk = Precision.objects.get(precision_name = data["precision_name"])
     )    
 
-def get_tasks(data):
+def get_all_tasks_instance(data):
     
     tasks_instance = []
     
@@ -263,13 +302,13 @@ def get_tasks(data):
         
     return tasks_instance
 
-def create_model_tasks(model_instance, tasks_instances):
+def create_model_tasks_instance(model_instance, tasks_instances):
         
     model_tasks_instances = [ModelTask(task_fk = task, model_fk = model_instance) for task in tasks_instances]
     
     return ModelTask.objects.bulk_create(model_tasks_instances)
     
-def create_or_get_resource(data):
+def create_or_get_resource_instance(data):
     resources_instance = []
 
     for index in range(len(data["resources_cpu"])):
@@ -288,7 +327,7 @@ def create_or_get_resource(data):
     
     return resources_instance
 
-def create_evaluation(data, model_instance, resources_instance):
+def create_evaluation_instance(data, model_instance, resources_instance):
     
     evaluations_instance = []
     
@@ -312,7 +351,7 @@ def create_evaluation(data, model_instance, resources_instance):
         
     return Evaluation.objects.bulk_create(evaluations_instance)
 
-def create_optimization(data, resources_instance):
+def create_optimization_instance(data, resources_instance):
     
     optimizations_instance = []
     
@@ -329,13 +368,13 @@ def create_optimization(data, resources_instance):
     
     return optimizations_instance
 
-def create_model_optimization(model_instance, optimizations_instance):
+def create_model_optimization_instance(model_instance, optimizations_instance):
     
     model_optimizations_instance = [ModelOptimization(model_fk = model_instance, optimization_fk = optimization) for optimization in optimizations_instance]
         
     return ModelOptimization.objects.bulk_create(model_optimizations_instance)
 
-def create_quantization(data, optimizations_instance):
+def create_quantization_instance(data, optimizations_instance):
     quantizations_instance = []
     
     for index in range(len(optimizations_instance)):
@@ -350,7 +389,7 @@ def create_quantization(data, optimizations_instance):
         
     return Quantization.objects.bulk_create(quantizations_instance)
     
-def create_pruning(data, optimizations_instance):
+def create_pruning_instance(data, optimizations_instance):
     
     prunings_instance = []
     
@@ -366,7 +405,7 @@ def create_pruning(data, optimizations_instance):
     
     return Pruning.objects.bulk_create(prunings_instance)
     
-def create_knowledge_distillation(data, optimizations_instance, model_instance):
+def create_knowledge_distillation_instance(data, optimizations_instance, model_instance):
     knowledges_instance = []
     
     for index in range(len(optimizations_instance)):

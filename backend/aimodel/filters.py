@@ -26,6 +26,7 @@ class BasicDataFilter(StrictFilterSet):
     energy_min = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='gte')
     energy_max = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='lte')
     max_training_time = django_filters.NumberFilter(field_name='training_time', lookup_expr='lte')
+    user_id = django_filters.NumberFilter(field_name='user_id')
     creator = django_filters.CharFilter(lookup_expr='icontains')
     
     class Meta:
