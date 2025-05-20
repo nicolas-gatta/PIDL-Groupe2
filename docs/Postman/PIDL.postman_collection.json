@@ -90,12 +90,13 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}auth/login",
+							"raw": "{{base_url}}auth/login/",
 							"host": [
 								"{{base_url}}auth"
 							],
 							"path": [
-								"login"
+								"login",
+								""
 							]
 						}
 					},
@@ -181,12 +182,13 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}auth/login",
+							"raw": "{{base_url}}auth/login/",
 							"host": [
 								"{{base_url}}auth"
 							],
 							"path": [
-								"login"
+								"login",
+								""
 							]
 						}
 					},
@@ -249,12 +251,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}auth/logout",
+							"raw": "{{base_url}}auth/logout/",
 							"host": [
 								"{{base_url}}auth"
 							],
 							"path": [
-								"logout"
+								"logout",
+								""
 							]
 						}
 					},
@@ -297,12 +300,13 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}auth/register",
+							"raw": "{{base_url}}auth/register/",
 							"host": [
 								"{{base_url}}auth"
 							],
 							"path": [
-								"register"
+								"register",
+								""
 							]
 						}
 					},
@@ -387,12 +391,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_all_simplify_data_models",
+									"raw": "{{base_url}}models/get_all_simplify_data_models/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_all_simplify_data_models"
+										"get_all_simplify_data_models",
+										""
 									]
 								}
 							},
@@ -557,7 +562,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?id=1",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models?user_id=1",
 									"host": [
 										"{{base_url}}models"
 									],
@@ -566,7 +571,7 @@
 									],
 									"query": [
 										{
-											"key": "id",
+											"key": "user_id",
 											"value": "1"
 										}
 									]
@@ -1625,12 +1630,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_all_precisions",
+									"raw": "{{base_url}}models/get_all_precisions/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_all_precisions"
+										"get_all_precisions",
+										""
 									]
 								}
 							},
@@ -1699,12 +1705,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_all_tasks",
+									"raw": "{{base_url}}models/get_all_tasks/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_all_tasks"
+										"get_all_tasks",
+										""
 									]
 								}
 							},
