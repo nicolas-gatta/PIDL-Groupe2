@@ -110,7 +110,7 @@ def get_all_simplify_data_models(request):
         serializer = BasicDataModelSerializer(models, many=True)
         return Response({"models": serializer.data}, status = status.HTTP_200_OK)
     except BasicDataModel.DoesNotExist:
-        return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND) 
 
 
 @extend_schema(

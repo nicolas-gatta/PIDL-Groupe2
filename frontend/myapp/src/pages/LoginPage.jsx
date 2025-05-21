@@ -14,7 +14,7 @@ export default function LoginPage() {
             setError('Tous les champs doivent être remplis');
             return;
         }
-
+ 
         try {
             const response = await fetch('http://127.0.0.1:8000/auth/login/', {
                 method: 'POST',
@@ -26,8 +26,12 @@ export default function LoginPage() {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log("data recu",data)
                 // Stocker le token dans localStorage par exemple
                 localStorage.setItem('token', data.token);
+                // Stoker le nom d'utilisateur
+                localStorage.setItem('user', JSON.stringify(data.user));
+
                 navigate('/dashboard');
                 // Redirection ou autre logique ici
             } else {

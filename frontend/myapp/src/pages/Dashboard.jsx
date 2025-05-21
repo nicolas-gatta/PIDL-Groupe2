@@ -20,6 +20,7 @@ const Dashboard = () => {
     const [selectedTask, setSelectedTask] = useState('');
     const [selectedType, setSelectedType] = useState('');
     const [selectedCreator, setSelectedCreator] = useState('');
+    const [selectedID, setSelectedID] = useState('');
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
     // Filtres avancés (affichés dans modal)
@@ -41,7 +42,7 @@ const Dashboard = () => {
     const [hasOptimization, setHasOptimization] = useState(false);
 
     // Tri des colonnes
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    //const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
     // Redirige vers /login si l'utilisateur n'est pas connecté
     useEffect(() => {
@@ -54,89 +55,110 @@ const Dashboard = () => {
 
     // Récupération des données utilisateur depuis le localStorage
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (userData) {
-            setUser(userData);
+    // Récupérer l'utilisateur depuis le localStorage
+    const userData = localStorage.getItem('user');
+    
+    // Vérification que les données existent avant de les parser
+    if (userData) {
+        try {
+            const parsedUserData = JSON.parse(userData);
+            //console.log("Nom de l'utilisateur:", parsedUserData.first_name); // Accès au nom de l'utilisateur
+            setUser(parsedUserData);  // Mettre à jour l'état utilisateur
+        } catch (error) {
+            //console.error("Erreur lors du parsing de l'utilisateur:", error);
         }
+    } else {
+        //console.log("Aucun utilisateur trouvé dans localStorage.");
+    }
     }, []);
     // Récupération des données de modèles depuis l'API
 
     const fetchFilteredData = useCallback(async () => {
-    const token = localStorage.getItem('token');
-    const queryParams = new URLSearchParams();
-    if (selectedTask) queryParams.append('task', selectedTask);
-    if (selectedType) queryParams.append('architecture', selectedType);
-    if (selectedCreator) queryParams.append('creator', selectedCreator);
-    queryParams.append('layers_min', selectedLayersRange[0]);
-    queryParams.append('layers_max', selectedLayersRange[1]);
-    queryParams.append('parameters_min', selectedParametersRange[0]);
-    queryParams.append('parameters_max', selectedParametersRange[1]);
-    queryParams.append('emissions_min', selectedEmissionRange[0]);
-    queryParams.append('emissions_max', selectedEmissionRange[1]);
-    queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
-    queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
-    queryParams.append('training_time_min', selectedTrainingTimeRange[0]);
-    queryParams.append('training_time_max', selectedTrainingTimeRange[1]);
-    queryParams.append('accuracy_min', selectedAccuracyRange[0]);
-    queryParams.append('accuracy_max', selectedAccuracyRange[1]);
-    queryParams.append('loss_min', selectedLossRange[0]);
-    queryParams.append('loss_max', selectedLossRange[1]);
-    queryParams.append('latency_min', selectedLatencyRange[0]);
-    queryParams.append('latency_max', selectedLatencyRange[1]);
-    queryParams.append('map50_min', selectedMap50Range[0]);
-    queryParams.append('map50_max', selectedMap50Range[1]);
-    queryParams.append('map5095_min', selectedMap5095Range[0]);
-    queryParams.append('map5095_max', selectedMap5095Range[1]);
-    
-    if (asTeacher) queryParams.append('as_teacher', 'true');
-    if (asStudent) queryParams.append('as_student', 'true');
-    if (hasOptimization) queryParams.append('has_optimization', 'true');
-    
+        const token = localStorage.getItem('token');
+        const queryParams = new URLSearchParams();
+        if (selectedTask) queryParams.append('task', selectedTask);
+        if (selectedType) queryParams.append('architecture', selectedType);
+        if (selectedCreator) queryParams.append('creator', selectedCreator);
+        if (selectedID) queryParams.append('id', selectedID);
+        queryParams.append('layers_min', selectedLayersRange[0]);
+        queryParams.append('layers_max', selectedLayersRange[1]);
+        queryParams.append('parameters_min', selectedParametersRange[0]);
+        queryParams.append('parameters_max', selectedParametersRange[1]);
+        queryParams.append('emissions_min', selectedEmissionRange[0]);
+        queryParams.append('emissions_max', selectedEmissionRange[1]);
+        queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
+        queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
+        queryParams.append('training_time_min', selectedTrainingTimeRange[0]);
+        queryParams.append('training_time_max', selectedTrainingTimeRange[1]);
+        queryParams.append('accuracy_min', selectedAccuracyRange[0]);
+        queryParams.append('accuracy_max', selectedAccuracyRange[1]);
+        queryParams.append('loss_min', selectedLossRange[0]);
+        queryParams.append('loss_max', selectedLossRange[1]);
+        queryParams.append('latency_min', selectedLatencyRange[0]);
+        queryParams.append('latency_max', selectedLatencyRange[1]);
+        queryParams.append('map50_min', selectedMap50Range[0]);
+        queryParams.append('map50_max', selectedMap50Range[1]);
+        queryParams.append('map5095_min', selectedMap5095Range[0]);
+        queryParams.append('map5095_max', selectedMap5095Range[1]);
+        
+        if (asTeacher) queryParams.append('as_teacher', 'true');
+        if (asStudent) queryParams.append('as_student', 'true');
+        if (hasOptimization) queryParams.append('has_optimization', 'true');
+        
 
-    const url = `http://127.0.0.1:8000/models/get_filtered_data_models/?${queryParams.toString()}`;
-    console.log("Generated URL:",url);
-    try 
-    {
-        const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
-        },
-        });
+        const url = `http://127.0.0.1:8000/models/get_filtered_full_data_models/?${queryParams.toString()}`;
+        //console.log("Generated URL:",url);
+        //console.log("queryParams.toString():",queryParams.toString());
 
-        if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
-        const result = await response.json();
-        //console.log("Données complètes:", result);
-        if (result && result) {
-            setData(result);
-        } else {
-            console.error('La réponse ne contient pas de modèles valides.', result);
-        }
-    } catch (err) {
-        setError(err.message);
-        console.error("Erreur lors de la récupération des données:", err);
-        }
-    }, [
-    selectedTask, selectedType, selectedCreator, selectedLayersRange,
-    selectedParametersRange, selectedEmissionRange, selectedEnergyConsumptionRange,
-    selectedTrainingTimeRange, asTeacher, asStudent, hasOptimization,
-    selectedAccuracyRange, selectedLossRange, selectedLatencyRange,
-    selectedMap50Range, selectedMap5095Range
-    ]);
+        try 
+        {
+            const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+            },
+            });
+
+            if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
+            const result = await response.json();
+            //console.log("Données complètes:", result);
+            if (result) {
+                setData(result.models);
+            } else {
+                //console.error('La réponse ne contient pas de modèles valides.', result);
+            }
+        } catch (err) {
+            setError(err.message);
+            //console.error("Erreur lors de la récupération des données:", err);
+            }
+        }, [
+        selectedTask, selectedType, selectedCreator, selectedLayersRange,
+        selectedParametersRange, selectedEmissionRange, selectedEnergyConsumptionRange,
+        selectedTrainingTimeRange, asTeacher, asStudent, hasOptimization,
+        selectedAccuracyRange, selectedLossRange, selectedLatencyRange,
+        selectedMap50Range, selectedMap5095Range,selectedID
+        ]
+    );
 
     useEffect(() => {
-    fetchFilteredData();
-    }, [fetchFilteredData]);
+        fetchFilteredData();
+        }, [fetchFilteredData]
+    );
 
     // Construction dynamique des options pour les filtres
-    const allTasks = Array.from(new Set(data.flatMap(model => model.tasks?.map(t => t.task_name) || [])));
+    ////console.log(data)
+    const allTasks = Array.from(new Set(data.flatMap(model => model.tasks?.map(t => t.name) || [])));
     const allArchitectures = Array.from(new Set(data.map(m => m.architecture)));
+    const allID = Array.from(new Set(data.map(m => m.id)));
+    //console.log("allID",allID)
 
     // Configuration des colonnes de tableau
     const tableHeaders = [
-        { key: 'model_name', label: 'Nom du Modèle' },
+        { key: 'id', label: 'ID du Modèle ' },
+        { key: 'name', label: 'Nom du Modèle' },
         { key: 'architecture', label: 'Architecture' },
+        { key: 'creator', label: 'Créateur' },
         { key: 'model_size_label', label: 'Taille' },
         { key: 'precision', label: 'Format du Modèle' },
         { key: 'layers', label: 'Couches' },
@@ -144,24 +166,25 @@ const Dashboard = () => {
         { key: 'flops_b', label: 'FLOPs (B)' },
         { key: 'model_size', label: 'Taille (Mo)' },
         { key: 'training_time', label: 'Temps d’entraînement (s)' },
+       // { key: 'id_evaluation', label: 'ID Evaluation ' },
         { key: 'accuracy', label: 'Précision' },
         { key: 'final_loss', label: 'Perte' },
         { key: 'latency_ms', label: 'Latence (ms)' },
         { key: 'fps_gpu', label: 'FPS GPU' },
-        { key: 'avg_emissions_gco2eq', label: 'CO2 (g)' },
-        { key: 'avg_energy_mwh', label: 'Énergie (mWh)' },
+        { key: 'emissions_gco2eq', label: 'CO2 (g)' },
+        { key: 'energy_consumption_mwh', label: 'Énergie (mWh)' },
         { key: 'map_50', label: 'mAP@50' },
         { key: 'map_50_95', label: 'mAP@50:95' },
-        { key: 'cpu_type', label: 'Type CPU' },
-        { key: 'memory_gpu', label: 'Mémoire GPU (Go)' },
-        { key: 'memory_gb', label: 'RAM (Go)' },
-        { key: 'cpu_frequency_ghz', label: 'Fréquence CPU (GHz)' },
-        { key: 'max_power_watts', label: 'Puissance max (W)' },
-        { key: 'creator', label: 'Créateur' }
+        { key: 'cpu', label: 'Type CPU' },
+        { key: 'gpu_memory', label: 'Mémoire GPU (Go)' },
+        { key: 'computer_ram', label: 'RAM (Go)' },
+        { key: 'cpu_frenquency', label: 'Fréquence CPU (GHz)' },
+        { key: 'max_watts', label: 'Puissance max (W)' },
+        
     ];
-
     
     // Tri dynamique des données filtrées
+    /*
    const sortedData = data.length > 0 ? [...data].sort((a, b) => {
     if (!sortConfig.key) return 0;
     const aVal = a[sortConfig.key];
@@ -180,6 +203,7 @@ const Dashboard = () => {
         }
         setSortConfig({ key, direction });
     };
+    */
 
     // Redirection vers login et suppression des données
     const handleLogout = () => {
@@ -220,6 +244,7 @@ const Dashboard = () => {
                         {/* Filtres */}
                         {renderFilterGroup('Tâche', ['', ...allTasks], selectedTask, setSelectedTask)}
                         {renderFilterGroup('Type de Modèle', ['', ...allArchitectures], selectedType, setSelectedType)}
+                        {renderFilterGroup('ID du Modèle', ['', ...allID], selectedID, setSelectedID)}
                         {renderFilterGroup('Créateur', ['', ...Array.from(new Set(data.map(m => m.creator)))], selectedCreator, setSelectedCreator)}
                         
                         <button className="advanced-filter-toggle" onClick={() => setShowAdvancedFilters(true)}>
@@ -241,20 +266,45 @@ const Dashboard = () => {
                         <thead>
                         <tr>
                             {tableHeaders.map((header) => (
-                            <th key={header.key} onClick={() => handleSort(header.key)} style={{ cursor: 'pointer' }}>
-                                {header.label} {sortConfig.key === header.key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
+                            <th key={header.key} /*onClick={() => handleSort(header.key)} style={{ cursor: 'pointer' }}*/>
+                                {header.label} {/*sortConfig.key === header.key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''*/}
                             </th>
                             ))}
                         </tr>
                         </thead>
                         <tbody>
-                            {sortedData.map((item) => (
-                                <tr key={item.id}>
-                                {tableHeaders.map((col) => (
-                                    <td key={col.key}>{item[col.key]}</td>
-                                ))}
-                                </tr>
-                            ))}
+                            {/*sortedData*/data.flatMap((item) => 
+                                item.evaluations.map((evaluation, evalIndex) => (
+                                    <tr key={`${item.id}-${evalIndex}`}>
+                                        {tableHeaders.map((col) => (
+                                            <td key={col.key}>
+                                                {/* Affichage des tâches (tasks) */}
+                                                {col.key === 'tasks' ? (
+                                                    item.tasks && item.tasks.length > 0
+                                                        ? item.tasks.map(task => task.name).join(', ')  // Affichage des noms des tâches
+                                                        : 'Aucune tâche'  // Valeur par défaut si aucune tâche
+                                                ) 
+                                                // Affichage des évaluations (evaluations) 
+                                                : (col.key === 'accuracy' || col.key === 'final_loss' || col.key === 'latency_ms' ||
+                                                    col.key === 'fps_gpu' || col.key === 'emissions_gco2eq' || col.key === 'cpu' || 
+                                                    col.key === 'gpu_memory' || col.key === 'computer_ram' || col.key === 'cpu_frenquency' || 
+                                                    col.key === 'max_watts' ||
+                                                    col.key === 'energy_consumption_mwh' || col.key === 'map_50' || col.key === 'map_50_95') ? (
+                                                    evaluation[col.key] !== undefined && evaluation[col.key] !== null
+                                                        ? evaluation[col.key]  // Afficher la valeur de l'évaluation
+                                                        : 'N/A'  // Affichage si aucune donnée dans l'évaluation
+                                                )
+                                                // Pour toutes les autres colonnes
+                                                : (
+                                                    item[col.key] !== undefined && item[col.key] !== null 
+                                                        ? item[col.key] 
+                                                        : 'N/A'
+                                                )}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
 
                     </table>
