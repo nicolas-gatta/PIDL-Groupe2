@@ -80,33 +80,33 @@ const Dashboard = () => {
         if (selectedType) queryParams.append('architecture', selectedType);
         if (selectedCreator) queryParams.append('creator', selectedCreator);
         if (selectedID) queryParams.append('id', selectedID);
-        queryParams.append('layers_min', selectedLayersRange[0]);
-        queryParams.append('layers_max', selectedLayersRange[1]);
-        queryParams.append('parameters_min', selectedParametersRange[0]);
-        queryParams.append('parameters_max', selectedParametersRange[1]);
+        //queryParams.append('layers_min', selectedLayersRange[0]);
+        //queryParams.append('layers_max', selectedLayersRange[1]);
+        //queryParams.append('parameters_min', selectedParametersRange[0]);
+        //queryParams.append('parameters_max', selectedParametersRange[1]);
         queryParams.append('emissions_min', selectedEmissionRange[0]);
         queryParams.append('emissions_max', selectedEmissionRange[1]);
         queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
         queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
-        queryParams.append('training_time_min', selectedTrainingTimeRange[0]);
-        queryParams.append('training_time_max', selectedTrainingTimeRange[1]);
-        queryParams.append('accuracy_min', selectedAccuracyRange[0]);
-        queryParams.append('accuracy_max', selectedAccuracyRange[1]);
-        queryParams.append('loss_min', selectedLossRange[0]);
-        queryParams.append('loss_max', selectedLossRange[1]);
-        queryParams.append('latency_min', selectedLatencyRange[0]);
-        queryParams.append('latency_max', selectedLatencyRange[1]);
-        queryParams.append('map50_min', selectedMap50Range[0]);
-        queryParams.append('map50_max', selectedMap50Range[1]);
-        queryParams.append('map5095_min', selectedMap5095Range[0]);
-        queryParams.append('map5095_max', selectedMap5095Range[1]);
+        //queryParams.append('training_time_min', selectedTrainingTimeRange[0]);
+        queryParams.append('max_training_time', selectedTrainingTimeRange[1]);
+        //queryParams.append('accuracy_min', selectedAccuracyRange[0]);
+        //queryParams.append('accuracy_max', selectedAccuracyRange[1]);
+        //queryParams.append('loss_min', selectedLossRange[0]);
+        //queryParams.append('loss_max', selectedLossRange[1]);
+        //queryParams.append('latency_min', selectedLatencyRange[0]);
+        //queryParams.append('latency_max', selectedLatencyRange[1]);
+        //queryParams.append('map50_min', selectedMap50Range[0]);
+        //queryParams.append('map50_max', selectedMap50Range[1]);
+        //queryParams.append('map5095_min', selectedMap5095Range[0]);
+        //queryParams.append('map5095_max', selectedMap5095Range[1]);
         
         if (asTeacher) queryParams.append('as_teacher', 'true');
         if (asStudent) queryParams.append('as_student', 'true');
         if (hasOptimization) queryParams.append('has_optimization', 'true');
         
 
-        const url = `http://127.0.0.1:8000/models/get_filtered_full_data_models/?${queryParams.toString()}`;
+        const url = `http://127.0.0.1:8000/models/get_filtered_simplify_data_models/?${queryParams.toString()}`;
         //console.log("Generated URL:",url);
         //console.log("queryParams.toString():",queryParams.toString());
 
@@ -166,20 +166,21 @@ const Dashboard = () => {
         { key: 'flops_b', label: 'FLOPs (B)' },
         { key: 'model_size', label: 'Taille (Mo)' },
         { key: 'training_time', label: 'Temps d’entraînement (s)' },
+        { key: 'creation_date', label: 'Date de création'},
        // { key: 'id_evaluation', label: 'ID Evaluation ' },
-        { key: 'accuracy', label: 'Précision' },
-        { key: 'final_loss', label: 'Perte' },
-        { key: 'latency_ms', label: 'Latence (ms)' },
+       // { key: 'accuracy', label: 'Précision' },
+       // { key: 'final_loss', label: 'Perte' },
+       // { key: 'latency_ms', label: 'Latence (ms)' },
         { key: 'fps_gpu', label: 'FPS GPU' },
-        { key: 'emissions_gco2eq', label: 'CO2 (g)' },
-        { key: 'energy_consumption_mwh', label: 'Énergie (mWh)' },
+        { key: 'avg_emissions_gco2eq', label: 'CO2 (g)' },
+        { key: 'avg_energy_mwh', label: 'Énergie (mWh)' },
         { key: 'map_50', label: 'mAP@50' },
         { key: 'map_50_95', label: 'mAP@50:95' },
-        { key: 'cpu', label: 'Type CPU' },
-        { key: 'gpu_memory', label: 'Mémoire GPU (Go)' },
-        { key: 'computer_ram', label: 'RAM (Go)' },
-        { key: 'cpu_frenquency', label: 'Fréquence CPU (GHz)' },
-        { key: 'max_watts', label: 'Puissance max (W)' },
+        //{ key: 'cpu', label: 'Type CPU' },
+        //{ key: 'gpu_memory', label: 'Mémoire GPU (Go)' },
+        //{ key: 'computer_ram', label: 'RAM (Go)' },
+        //{ key: 'cpu_frenquency', label: 'Fréquence CPU (GHz)' },
+        //{ key: 'max_watts', label: 'Puissance max (W)' },
         
     ];
     
@@ -272,45 +273,92 @@ const Dashboard = () => {
                             ))}
                         </tr>
                         </thead>
-                        <tbody>
-                            {/*sortedData*/data.flatMap((item) => 
-                                item.evaluations.map((evaluation, evalIndex) => (
-                                    <tr key={`${item.id}-${evalIndex}`}>
-                                        {tableHeaders.map((col) => (
-                                            <td key={col.key}>
-                                                {/* Affichage des tâches (tasks) */}
-                                                {col.key === 'tasks' ? (
-                                                    item.tasks && item.tasks.length > 0
-                                                        ? item.tasks.map(task => task.name).join(', ')  // Affichage des noms des tâches
-                                                        : 'Aucune tâche'  // Valeur par défaut si aucune tâche
-                                                ) 
-                                                // Affichage des évaluations (evaluations) 
-                                                : (col.key === 'accuracy' || col.key === 'final_loss' || col.key === 'latency_ms' ||
-                                                    col.key === 'fps_gpu' || col.key === 'emissions_gco2eq' || col.key === 'cpu' || 
-                                                    col.key === 'gpu_memory' || col.key === 'computer_ram' || col.key === 'cpu_frenquency' || 
-                                                    col.key === 'max_watts' ||
-                                                    col.key === 'energy_consumption_mwh' || col.key === 'map_50' || col.key === 'map_50_95') ? (
-                                                    evaluation[col.key] !== undefined && evaluation[col.key] !== null
-                                                        ? evaluation[col.key]  // Afficher la valeur de l'évaluation
-                                                        : 'N/A'  // Affichage si aucune donnée dans l'évaluation
-                                                )
-                                                // Pour toutes les autres colonnes
-                                                : (
-                                                    item[col.key] !== undefined && item[col.key] !== null 
-                                                        ? item[col.key] 
-                                                        : 'N/A'
-                                                )}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-
+                            <tbody>
+                            {data.map((item) => (
+                                <tr key={item.id}>
+                                {tableHeaders.map((col) => (
+                                    <td key={col.key}>{item[col.key]}</td>
+                                ))}
+                                </tr>
+                            ))}
+                            </tbody>
                     </table>
                 </div>
                 {showAdvancedFilters && (
                 <div className="modal-overlay">
+                    <div className="modal-content">
+                    <h3>Filtres Avancés</h3>
+    
+
+                    <div className="slider-group">
+                        <label>Paramètres (M)</label>
+                        <input type="range" min="0" max="10000" step="10"
+                        value={selectedParametersRange[0]}
+                        onChange={(e) => setSelectedParametersRange([parseFloat(e.target.value), selectedParametersRange[1]])}
+                        />
+                        <input type="range" min="0" max="10000" step="10"
+                        value={selectedParametersRange[1]}
+                        onChange={(e) => setSelectedParametersRange([selectedParametersRange[0], parseFloat(e.target.value)])}
+                        />
+                        <span>{selectedParametersRange[0]} - {selectedParametersRange[1]} M</span>
+                    </div>
+
+                    <div className="slider-group">
+                            <label>Tranche d’émission CO2 (g)</label>
+                            <input type="range" min="0" max="1" step="0.01"
+                                value={selectedEmissionRange[0]}
+                                onChange={(e) =>
+                                setSelectedEmissionRange([parseFloat(e.target.value), selectedEmissionRange[1]])
+                                }
+                            />
+                            <input type="range" min="0" max="1" step="0.01"
+                                value={selectedEmissionRange[1]}
+                                onChange={(e) =>
+                                setSelectedEmissionRange([selectedEmissionRange[0], parseFloat(e.target.value)])
+                                }
+                            />
+                            <span>{selectedEmissionRange[0]} - {selectedEmissionRange[1]} g</span>
+                        </div>
+
+                        <div className="slider-group">
+                            <label>Consommation Énergétique (mWh)</label>
+                            <input type="range" min="0" max="250" step="5"
+                                value={selectedEnergyConsumptionRange[0]}
+                                onChange={(e) =>
+                                setSelectedEnergyConsumptionRange([parseFloat(e.target.value), selectedEnergyConsumptionRange[1]])
+                                }
+                            />
+                            <input type="range" min="0" max="250" step="5"
+                                value={selectedEnergyConsumptionRange[1]}
+                                onChange={(e) =>
+                                setSelectedEnergyConsumptionRange([selectedEnergyConsumptionRange[0], parseFloat(e.target.value)])
+                                }
+                            />
+                            <span>{selectedEnergyConsumptionRange[0]} - {selectedEnergyConsumptionRange[1]} mWh</span>
+                        </div>
+
+        
+                    <button onClick={() => {
+                        setShowAdvancedFilters(false);
+                        fetchFilteredData();
+                     }}>
+                        Appliquer les filtres
+                    </button>
+                 </div>
+                </div>
+                )}
+
+            </div>
+            
+        </div>
+    );
+};
+
+export default Dashboard;
+
+
+{/*
+<div className="modal-overlay">
                     <div className="modal-content">
                     <h3>Filtres Avancés</h3>
                     <div className="slider-group">
@@ -390,7 +438,7 @@ const Dashboard = () => {
                             <span>{selectedTrainingTimeRange[0]} - {selectedTrainingTimeRange[1]} s</span>
                         </div>
                         
-                        {/* Accuracy */}
+                        
                         <div className="slider-group">
                             <label>Précision (%)</label>
                             <input type="range" min="0" max="100" step="1"
@@ -404,7 +452,7 @@ const Dashboard = () => {
                             <span>{selectedAccuracyRange[0]}% - {selectedAccuracyRange[1]}%</span>
                         </div>
 
-                        {/* Final Loss */}
+                       
                         <div className="slider-group">
                             <label>Final Loss</label>
                             <input type="range" min="0" max="10" step="0.01"
@@ -418,7 +466,7 @@ const Dashboard = () => {
                             <span>{selectedLossRange[0]} - {selectedLossRange[1]}</span>
                         </div>
 
-                        {/* Latency */}
+                        
                         <div className="slider-group">
                             <label>Latence (ms)</label>
                             <input type="range" min="0" max="1000" step="10"
@@ -432,7 +480,7 @@ const Dashboard = () => {
                             <span>{selectedLatencyRange[0]} - {selectedLatencyRange[1]} ms</span>
                         </div>
 
-                        {/* mAP@50 */}
+                       
                         <div className="slider-group">
                             <label>mAP@50</label>
                             <input type="range" min="0" max="1" step="0.01"
@@ -446,7 +494,7 @@ const Dashboard = () => {
                             <span>{selectedMap50Range[0]} - {selectedMap50Range[1]}</span>
                         </div>
 
-                        {/* mAP@50:95 */}
+                        
                         <div className="slider-group">
                             <label>mAP@50:95</label>
                             <input type="range" min="0" max="1" step="0.01"
@@ -459,7 +507,8 @@ const Dashboard = () => {
                             />
                             <span>{selectedMap5095Range[0]} - {selectedMap5095Range[1]}</span>
                         </div>
-                        {/* studen-teacher-optimisation */}
+                        
+                        
                         <div className="checkbox-group">
                             <label>
                                 <input type="checkbox" checked={asTeacher} onChange={(e) => setAsTeacher(e.target.checked)} />
@@ -474,21 +523,4 @@ const Dashboard = () => {
                                 Optimisé
                             </label>
                         </div>
-                    <button onClick={() => {
-                        setShowAdvancedFilters(false);
-                        fetchFilteredData();
-                     }}>
-                        Appliquer les filtres
-                    </button>
-                 </div>
-                </div>
-                )}
-
-            </div>
-            
-        </div>
-    );
-};
-
-export default Dashboard;
-
+                        */}
