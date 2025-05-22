@@ -1,40 +1,124 @@
+/*LoginPage.css*/
 
 .login-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
-    background-color: #4973FD;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #2c3e50; /* Fond bleu foncé comme dashboard */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.login-header {
+    margin-bottom: 40px;
+    color: #00a8ff; /* bleu clair accent */
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.brand-title {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
 }
 
 .login-box {
-    background-color: white;
+    background-color: rgba(44, 62, 80, 0.85); /* bleu foncé transparent */
+    border: 1px solid rgba(0, 168, 255, 0.6); /* bordure bleu clair */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     padding: 30px;
-    border-radius: 8px;
-    width: 300px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    width: 350px;
+    color: #ecf0f1; /* texte clair */
+    box-sizing: border-box;
+}
+
+h2 {
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+    color: #00a8ff; /* titre bleu clair */
 }
 
 .login-input {
     width: 100%;
     padding: 12px;
     margin-bottom: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ecf0f1;
+    font-size: 1rem;
+    outline: none;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+    .login-input::placeholder {
+        color: #a0bcd7; /* placeholder bleu clair pâle */
+    }
+
+    .login-input:focus {
+        background-color: rgba(0, 168, 255, 0.15);
+    }
+
+.login-button, .signup-switch-button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box;
+    border: none;
 }
 
 .login-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #4973FD;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
+    background-color: #00a8ff; /* bleu vif */
+    color: #2c3e50; /* texte foncé */
 }
 
+    .login-button:hover {
+        background-color: #0090e0;
+    }
+
+.signup-switch-button {
+    background-color: transparent;
+    color: #00a8ff;
+    border: 2px solid #00a8ff;
+    margin-top: 12px;
+}
+
+    .signup-switch-button:hover {
+        background-color: #00a8ff;
+        color: #2c3e50;
+    }
+
 .error-message {
-    color: red;
-    margin-top: 10px;
+    color: #e74c3c; /* rouge vif */
+    margin: 10px 0;
     text-align: center;
+    font-weight: 600;
+}
+
+.success-message {
+    color: #2ecc71; /* vert */
+    margin: 10px 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.login-logo {
+    display: block;
+    margin: 0 auto 20px auto;
+    width: 240px; /* ajuste la taille si besoin */
+    height: auto;
+    object-fit: contain;
 }

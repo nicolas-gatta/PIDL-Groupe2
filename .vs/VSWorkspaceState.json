@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\frontend",
+    "\\frontend\\myapp",
+    "\\frontend\\myapp\\src",
+    "\\frontend\\myapp\\src\\pages"
+  ],
+  "SelectedNode": "\\frontend\\myapp\\src\\pages\\Dashboard.css",
+  "PreviewInSolutionExplorer": false
+}
