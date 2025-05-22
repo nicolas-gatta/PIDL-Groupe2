@@ -82,7 +82,7 @@ def register_view(request):
             password = password,
             first_name = first_name,
             last_name = last_name,
-            role_fk = Role.objects.get(role_id = 3)
+            role_fk = Role.objects.get(role_id = 2)
         )
 
         serializer = CustomUserSerializer(user)
