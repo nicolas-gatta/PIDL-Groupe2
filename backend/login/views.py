@@ -75,7 +75,7 @@ def register_view(request):
         return user_data
     
     try:
-        user = CustomUser.objects.create(
+        user = CustomUser.objects.create_user(
             email =  email,
             password = password,
             first_name = first_name,
