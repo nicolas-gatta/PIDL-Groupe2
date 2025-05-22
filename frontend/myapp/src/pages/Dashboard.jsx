@@ -1,494 +1,390 @@
 // Dashboard.jsx - Vue principale pour la gestion des modèles IA
 // Ce composant affiche une table filtrable et triable des modèles IA 
 // récupérés depuis l'API backend, avec vérification d'authentification.
-import React, { useState, useEffect, useCallback} from 'react';
-import { useNavigate } from 'react-router-dom'; // Utilisation du hook React Router pour la navigation
-import { FaBars, FaArrowLeft } from 'react-icons/fa'; // Remplacement de Ionicons avec react-icons
-import './Dashboard.css'; // Fichier CSS pour les styles
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaBars, FaArrowLeft } from 'react-icons/fa';
+import './Dashboard.css';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    // Visibilité de la barre latérale
     const [sidebarVisible, setSidebarVisible] = useState(true);
-    // État utilisateur connecté
     const [user, setUser] = useState({});
-    // Données de modèles à afficher et erreur potentielle
     const [data, setData] = useState([]);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    // États pour les filtres simples
+    // Filtres simples
     const [selectedTask, setSelectedTask] = useState('');
     const [selectedType, setSelectedType] = useState('');
     const [selectedCreator, setSelectedCreator] = useState('');
     const [selectedID, setSelectedID] = useState('');
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-    // Filtres avancés (affichés dans modal)
+    // Filtres avancés
     const [selectedEmissionRange, setSelectedEmissionRange] = useState([0, 1]);
     const [selectedEnergyConsumptionRange, setSelectedEnergyConsumptionRange] = useState([0, 500]);
-    const [selectedTrainingTimeRange, setSelectedTrainingTimeRange] = useState([0, 1000000]); // En secondes
-   // //const [selectedCreator, setSelectedCreator] = useState('');
-    const [selectedLayersRange, setSelectedLayersRange] = useState([0, 500]);
+    const [selectedTrainingTimeRange, setSelectedTrainingTimeRange] = useState([0, 1000000]);
     const [selectedParametersRange, setSelectedParametersRange] = useState([0, 10000]);
-    const [selectedAccuracyRange, setSelectedAccuracyRange] = useState([0, 100]);
-    const [selectedLossRange, setSelectedLossRange] = useState([0, 10]);
-    const [selectedLatencyRange, setSelectedLatencyRange] = useState([0, 1000]);
-    const [selectedMap50Range, setSelectedMap50Range] = useState([0, 1]);
-    const [selectedMap5095Range, setSelectedMap5095Range] = useState([0, 1]);
 
-    // États booléens supplémentaires
+    // Booléens
     const [asTeacher, setAsTeacher] = useState(false);
     const [asStudent, setAsStudent] = useState(false);
     const [hasOptimization, setHasOptimization] = useState(false);
 
-    // Tri des colonnes
-    //const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [searchTerm, setSearchTerm] = useState('');
 
-    // Redirige vers /login si l'utilisateur n'est pas connecté
+    // Redirection si pas connecté
     useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        navigate('/login');
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
         }
     }, [navigate]);
 
-
-    // Récupération des données utilisateur depuis le localStorage
+    // Chargement utilisateur
     useEffect(() => {
-    // Récupérer l'utilisateur depuis le localStorage
-    const userData = localStorage.getItem('user');
-    
-    // Vérification que les données existent avant de les parser
-    if (userData) {
-        try {
-            const parsedUserData = JSON.parse(userData);
-            //console.log("Nom de l'utilisateur:", parsedUserData.first_name); // Accès au nom de l'utilisateur
-            setUser(parsedUserData);  // Mettre à jour l'état utilisateur
-        } catch (error) {
-            //console.error("Erreur lors du parsing de l'utilisateur:", error);
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            try {
+                setUser(JSON.parse(userData));
+            } catch {
+                setUser({});
+            }
         }
-    } else {
-        //console.log("Aucun utilisateur trouvé dans localStorage.");
-    }
     }, []);
-    // Récupération des données de modèles depuis l'API
 
+    // Fetch données filtrées
     const fetchFilteredData = useCallback(async () => {
+        setLoading(true);
+        setError('');
         const token = localStorage.getItem('token');
         const queryParams = new URLSearchParams();
+
         if (selectedTask) queryParams.append('task', selectedTask);
         if (selectedType) queryParams.append('architecture', selectedType);
         if (selectedCreator) queryParams.append('creator', selectedCreator);
         if (selectedID) queryParams.append('id', selectedID);
-        queryParams.append('layers_min', selectedLayersRange[0]);
-        queryParams.append('layers_max', selectedLayersRange[1]);
-        queryParams.append('parameters_min', selectedParametersRange[0]);
-        queryParams.append('parameters_max', selectedParametersRange[1]);
+
         queryParams.append('emissions_min', selectedEmissionRange[0]);
         queryParams.append('emissions_max', selectedEmissionRange[1]);
         queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
         queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
-        queryParams.append('training_time_min', selectedTrainingTimeRange[0]);
-        queryParams.append('training_time_max', selectedTrainingTimeRange[1]);
-        queryParams.append('accuracy_min', selectedAccuracyRange[0]);
-        queryParams.append('accuracy_max', selectedAccuracyRange[1]);
-        queryParams.append('loss_min', selectedLossRange[0]);
-        queryParams.append('loss_max', selectedLossRange[1]);
-        queryParams.append('latency_min', selectedLatencyRange[0]);
-        queryParams.append('latency_max', selectedLatencyRange[1]);
-        queryParams.append('map50_min', selectedMap50Range[0]);
-        queryParams.append('map50_max', selectedMap50Range[1]);
-        queryParams.append('map5095_min', selectedMap5095Range[0]);
-        queryParams.append('map5095_max', selectedMap5095Range[1]);
-        
+        queryParams.append('max_training_time', selectedTrainingTimeRange[1]);
+
         if (asTeacher) queryParams.append('as_teacher', 'true');
         if (asStudent) queryParams.append('as_student', 'true');
         if (hasOptimization) queryParams.append('has_optimization', 'true');
-        
 
-        const url = `http://127.0.0.1:8000/models/get_filtered_full_data_models/?${queryParams.toString()}`;
-        //console.log("Generated URL:",url);
-        //console.log("queryParams.toString():",queryParams.toString());
+        const url = `http://127.0.0.1:8000/models/get_filtered_simplify_data_models/?${queryParams.toString()}`;
 
-        try 
-        {
+        try {
             const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Token ${token}`,
-            },
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
             });
-
             if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
             const result = await response.json();
-            //console.log("Données complètes:", result);
-            if (result) {
-                setData(result.models);
-            } else {
-                //console.error('La réponse ne contient pas de modèles valides.', result);
-            }
+            setData(result.models || []);
         } catch (err) {
             setError(err.message);
-            //console.error("Erreur lors de la récupération des données:", err);
-            }
-        }, [
-        selectedTask, selectedType, selectedCreator, selectedLayersRange,
-        selectedParametersRange, selectedEmissionRange, selectedEnergyConsumptionRange,
-        selectedTrainingTimeRange, asTeacher, asStudent, hasOptimization,
-        selectedAccuracyRange, selectedLossRange, selectedLatencyRange,
-        selectedMap50Range, selectedMap5095Range,selectedID
-        ]
-    );
+        } finally {
+            setLoading(false);
+        }
+    }, [
+        selectedTask, selectedType, selectedCreator, selectedID,
+        selectedEmissionRange, selectedEnergyConsumptionRange, selectedTrainingTimeRange,
+        asTeacher, asStudent, hasOptimization
+    ]);
 
     useEffect(() => {
         fetchFilteredData();
-        }, [fetchFilteredData]
+    }, [fetchFilteredData]);
+
+    // Options dynamiques
+    const allTasks = Array.from(new Set(data.flatMap(m => m.tasks?.map(t => t.name) || [])));
+    const allArchitectures = Array.from(new Set(data.map(m => m.architecture)));
+    const allIDs = Array.from(new Set(data.map(m => m.id)));
+
+    // Filtrage recherche simple sur le nom
+    const filteredData = data.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Construction dynamique des options pour les filtres
-    ////console.log(data)
-    const allTasks = Array.from(new Set(data.flatMap(model => model.tasks?.map(t => t.name) || [])));
-    const allArchitectures = Array.from(new Set(data.map(m => m.architecture)));
-    const allID = Array.from(new Set(data.map(m => m.id)));
-    //console.log("allID",allID)
-
-    // Configuration des colonnes de tableau
+    // Table headers
     const tableHeaders = [
-        { key: 'id', label: 'ID du Modèle ' },
+        { key: 'id', label: 'ID du Modèle' },
         { key: 'name', label: 'Nom du Modèle' },
         { key: 'architecture', label: 'Architecture' },
         { key: 'creator', label: 'Créateur' },
         { key: 'model_size_label', label: 'Taille' },
-        { key: 'precision', label: 'Format du Modèle' },
+        { key: 'precision', label: 'Format' },
         { key: 'layers', label: 'Couches' },
         { key: 'parameters_m', label: 'Paramètres (M)' },
         { key: 'flops_b', label: 'FLOPs (B)' },
         { key: 'model_size', label: 'Taille (Mo)' },
-        { key: 'training_time', label: 'Temps d’entraînement (s)' },
-       // { key: 'id_evaluation', label: 'ID Evaluation ' },
-        { key: 'accuracy', label: 'Précision' },
-        { key: 'final_loss', label: 'Perte' },
-        { key: 'latency_ms', label: 'Latence (ms)' },
+        { key: 'training_time', label: 'Temps entraînement (s)' },
+        { key: 'creation_date', label: 'Date création' },
         { key: 'fps_gpu', label: 'FPS GPU' },
-        { key: 'emissions_gco2eq', label: 'CO2 (g)' },
-        { key: 'energy_consumption_mwh', label: 'Énergie (mWh)' },
+        { key: 'avg_emissions_gco2eq', label: 'CO2 (g)' },
+        { key: 'avg_energy_mwh', label: 'Énergie (mWh)' },
         { key: 'map_50', label: 'mAP@50' },
         { key: 'map_50_95', label: 'mAP@50:95' },
-        { key: 'cpu', label: 'Type CPU' },
-        { key: 'gpu_memory', label: 'Mémoire GPU (Go)' },
-        { key: 'computer_ram', label: 'RAM (Go)' },
-        { key: 'cpu_frenquency', label: 'Fréquence CPU (GHz)' },
-        { key: 'max_watts', label: 'Puissance max (W)' },
-        
     ];
-    
-    // Tri dynamique des données filtrées
-    /*
-   const sortedData = data.length > 0 ? [...data].sort((a, b) => {
-    if (!sortConfig.key) return 0;
-    const aVal = a[sortConfig.key];
-    const bVal = b[sortConfig.key];
 
-    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-    return 0;   
-    }) : [];
-
-    // Fonction pour mettre à jour le tri
-    const handleSort = (key) => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
-    */
-
-    // Redirection vers login et suppression des données
+    // Déconnexion
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
     };
-    // Rendu d'un groupe de filtre
+
+    // Composant filtres dropdown
     const renderFilterGroup = (label, options, selectedValue, onChange) => (
-        <>
+        <div className="filter-group">
             <label className="filter-label">{label}</label>
-            <select value={selectedValue} onChange={(e) => onChange(e.target.value)} className="picker">
-                {options.map((option, index) => (
-                    <option key={index} value={option}>{option === '' ? 'Tous' : option}</option>
+            <select value={selectedValue} onChange={e => onChange(e.target.value)} className="picker">
+                <option value=''>Tous</option>
+                {options.map((opt, i) => (
+                    <option key={i} value={opt}>{opt}</option>
                 ))}
             </select>
-        </>
+        </div>
     );
-    // Composant retourné
-    return (
-        <div className="dashboard-container">
-            {/* Bouton de toggle Sidebar */}
-            <button className="toggle-button" onClick={() => setSidebarVisible(!sidebarVisible)}>
-                {sidebarVisible ? <FaArrowLeft /> : <FaBars />}
-            </button>
 
-            {/* Sidebar */}
-            {sidebarVisible && (
-                <div className="sidebar">
+    // Handler slider range double
+    const handleRangeChange = (setter, index, value, currentRange) => {
+        let newRange = [...currentRange];
+        newRange[index] = value;
+        // On garde l'ordre min <= max
+        if (index === 0 && value > currentRange[1]) newRange[1] = value;
+        if (index === 1 && value < currentRange[0]) newRange[0] = value;
+        setter(newRange);
+    };
+
+    return (
+        <div>
+            <header className="brand-header">
+                <h1 className="brand-title">DeepCompare</h1>
+            </header>
+
+            <div className="dashboard-container">
+                <button
+                    className="toggle-button"
+                    onClick={() => setSidebarVisible(v => !v)}
+                    aria-label="Toggle sidebar"
+                >
+                    {sidebarVisible ? <FaArrowLeft /> : <FaBars />}
+                </button>
+
+                <aside className={`sidebar ${sidebarVisible ? 'visible' : ''}`}>
                     <div className="sidebar-content">
                         <div className="profile">
-                            <img src="https://www.photoprof.fr/images_dp/photographes/profil_vide.jpg" alt="Profile" className="profile-image" />
+                            <img
+                                src="https://www.photoprof.fr/images_dp/photographes/profil_vide.jpg"
+                                alt="Profile"
+                                className="profile-image"
+                            />
                             <h3 className="username">{user.first_name} {user.last_name}</h3>
                             <p className="email">{user.email}</p>
                         </div>
 
                         <button className="logout-button" onClick={handleLogout}>Déconnexion</button>
 
-                        {/* Filtres */}
-                        {renderFilterGroup('Tâche', ['', ...allTasks], selectedTask, setSelectedTask)}
-                        {renderFilterGroup('Type de Modèle', ['', ...allArchitectures], selectedType, setSelectedType)}
-                        {renderFilterGroup('ID du Modèle', ['', ...allID], selectedID, setSelectedID)}
-                        {renderFilterGroup('Créateur', ['', ...Array.from(new Set(data.map(m => m.creator)))], selectedCreator, setSelectedCreator)}
-                        
-                        <button className="advanced-filter-toggle" onClick={() => setShowAdvancedFilters(true)}>
+                        {renderFilterGroup('Tâche', allTasks, selectedTask, setSelectedTask)}
+                        {renderFilterGroup('Type de Modèle', allArchitectures, selectedType, setSelectedType)}
+
+                        <div className="filter-group">
+                            <label className="filter-label" htmlFor="creator-filter">Créateur</label>
+                            <input
+                                id="creator-filter"
+                                type="text"
+                                placeholder="Rechercher un créateur..."
+                                value={selectedCreator}
+                                onChange={e => setSelectedCreator(e.target.value)}
+                                className="picker"
+                                style={{ padding: '6px', width: '100%' }}
+                            />
+                        </div>
+
+                        <button
+                            className="advanced-filter-toggle"
+                            onClick={() => setShowAdvancedFilters(true)}
+                        >
                             Filtres Avancés
                         </button>
-
-                    </div> 
-                </div>
-            )}
-
-            {/* Main Content */}
-            <div className={`main-content ${sidebarVisible ? 'full' : 'collapsed'}`}>
-                <h1>Gestion des modèles IA</h1>
-                <div className="table-container">
-                    <div className="table-navigation">
-                        
                     </div>
-                    <table>
-                        <thead>
-                        <tr>
-                            {tableHeaders.map((header) => (
-                            <th key={header.key} /*onClick={() => handleSort(header.key)} style={{ cursor: 'pointer' }}*/>
-                                {header.label} {/*sortConfig.key === header.key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''*/}
-                            </th>
-                            ))}
-                        </tr>
-                        </thead>
-                        <tbody>
-                            {/*sortedData*/data.flatMap((item) => 
-                                item.evaluations.map((evaluation, evalIndex) => (
-                                    <tr key={`${item.id}-${evalIndex}`}>
-                                        {tableHeaders.map((col) => (
-                                            <td key={col.key}>
-                                                {/* Affichage des tâches (tasks) */}
-                                                {col.key === 'tasks' ? (
-                                                    item.tasks && item.tasks.length > 0
-                                                        ? item.tasks.map(task => task.name).join(', ')  // Affichage des noms des tâches
-                                                        : 'Aucune tâche'  // Valeur par défaut si aucune tâche
-                                                ) 
-                                                // Affichage des évaluations (evaluations) 
-                                                : (col.key === 'accuracy' || col.key === 'final_loss' || col.key === 'latency_ms' ||
-                                                    col.key === 'fps_gpu' || col.key === 'emissions_gco2eq' || col.key === 'cpu' || 
-                                                    col.key === 'gpu_memory' || col.key === 'computer_ram' || col.key === 'cpu_frenquency' || 
-                                                    col.key === 'max_watts' ||
-                                                    col.key === 'energy_consumption_mwh' || col.key === 'map_50' || col.key === 'map_50_95') ? (
-                                                    evaluation[col.key] !== undefined && evaluation[col.key] !== null
-                                                        ? evaluation[col.key]  // Afficher la valeur de l'évaluation
-                                                        : 'N/A'  // Affichage si aucune donnée dans l'évaluation
-                                                )
-                                                // Pour toutes les autres colonnes
-                                                : (
-                                                    item[col.key] !== undefined && item[col.key] !== null 
-                                                        ? item[col.key] 
-                                                        : 'N/A'
-                                                )}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
+                </aside>
 
-                    </table>
-                </div>
+                <main className={`main-content ${sidebarVisible ? 'shifted' : ''}`}>
+                    <div className="toolbar">
+                        <input
+                            type="text"
+                            placeholder="Recherche..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="search-input"
+                        />
+                        <button
+                            className="new-model-button"
+                            onClick={() => navigate('/ajout')}
+                        >
+                            Ajouter un nouveau modèle
+                        </button>
+                    </div>
+
+                    {loading && <p style={{ textAlign: 'center', margin: '1rem 0' }}>Chargement...</p>}
+                    {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
+                    <div className="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {tableHeaders.map(h => <th key={h.key}>{h.label}</th>)}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredData.length === 0 ? (
+                                    <tr><td colSpan={tableHeaders.length} style={{ textAlign: 'center' }}>Aucun résultat</td></tr>
+                                ) : (
+                                    filteredData.map(model => (
+                                        <tr key={model.id}>
+                                            {tableHeaders.map(h => (
+                                                <td key={h.key}>{model[h.key] ?? '-'}</td>
+                                            ))}
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+
+                {/* Modal filtres avancés */}
                 {showAdvancedFilters && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                    <h3>Filtres Avancés</h3>
-                    <div className="slider-group">
-                        <label>Couches (layers)</label>
-                        <input type="range" min="0" max="500" step="1"
-                        value={selectedLayersRange[0]}
-                        onChange={(e) => setSelectedLayersRange([parseInt(e.target.value), selectedLayersRange[1]])}
-                        />
-                        <input type="range" min="0" max="500" step="1"
-                        value={selectedLayersRange[1]}
-                        onChange={(e) => setSelectedLayersRange([selectedLayersRange[0], parseInt(e.target.value)])}
-                        />
-                        <span>{selectedLayersRange[0]} - {selectedLayersRange[1]}</span>
+                    <div className="modal-backdrop" onClick={() => setShowAdvancedFilters(false)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <h3 className="modal-title">Filtres Avancés</h3>
+
+
+                            <div className="range-filter">
+                                <label>Émissions CO₂ (g)</label>
+                                <div className="range-inputs">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={selectedEmissionRange[1]}
+                                        value={selectedEmissionRange[0]}
+                                        onChange={e => handleRangeChange(setSelectedEmissionRange, 0, Number(e.target.value), selectedEmissionRange)}
+                                        className="range-number-input"
+                                    />
+                                    <input
+                                        type="number"
+                                        min={selectedEmissionRange[0]}
+                                        max={1000}
+                                        value={selectedEmissionRange[1]}
+                                        onChange={e => handleRangeChange(setSelectedEmissionRange, 1, Number(e.target.value), selectedEmissionRange)}
+                                        className="range-number-input"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="range-filter">
+                                <label>Consommation Énergie (mWh)</label>
+                                <div className="range-inputs">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={selectedEnergyConsumptionRange[1]}
+                                        value={selectedEnergyConsumptionRange[0]}
+                                        onChange={e => handleRangeChange(setSelectedEnergyConsumptionRange, 0, Number(e.target.value), selectedEnergyConsumptionRange)}
+                                        className="range-number-input"
+                                    />
+                                    <input
+                                        type="number"
+                                        min={selectedEnergyConsumptionRange[0]}
+                                        max={5000}
+                                        value={selectedEnergyConsumptionRange[1]}
+                                        onChange={e => handleRangeChange(setSelectedEnergyConsumptionRange, 1, Number(e.target.value), selectedEnergyConsumptionRange)}
+                                        className="range-number-input"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="range-filter">
+                                <label>Temps Entraînement (s)</label>
+                                <div className="range-inputs">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={selectedTrainingTimeRange[1]}
+                                        value={selectedTrainingTimeRange[0]}
+                                        onChange={e => handleRangeChange(setSelectedTrainingTimeRange, 0, Number(e.target.value), selectedTrainingTimeRange)}
+                                        className="range-number-input"
+                                    />
+                                    <input
+                                        type="number"
+                                        min={selectedTrainingTimeRange[0]}
+                                        max={10000000}
+                                        value={selectedTrainingTimeRange[1]}
+                                        onChange={e => handleRangeChange(setSelectedTrainingTimeRange, 1, Number(e.target.value), selectedTrainingTimeRange)}
+                                        className="range-number-input"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="range-filter">
+                                <label>Paramètres (M)</label>
+                                <div className="range-inputs">
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={selectedParametersRange[1]}
+                                        value={selectedParametersRange[0]}
+                                        onChange={e => handleRangeChange(setSelectedParametersRange, 0, Number(e.target.value), selectedParametersRange)}
+                                        className="range-number-input"
+                                    />
+                                    <input
+                                        type="number"
+                                        min={selectedParametersRange[0]}
+                                        max={50000}
+                                        value={selectedParametersRange[1]}
+                                        onChange={e => handleRangeChange(setSelectedParametersRange, 1, Number(e.target.value), selectedParametersRange)}
+                                        className="range-number-input"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="checkbox-group">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={asTeacher}
+                                        onChange={() => setAsTeacher(v => !v)}
+                                    /> En tant que Professeur
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={asStudent}
+                                        onChange={() => setAsStudent(v => !v)}
+                                    /> En tant qu'Étudiant
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={hasOptimization}
+                                        onChange={() => setHasOptimization(v => !v)}
+                                    /> Avec Optimisation
+                                </label>
+                            </div>
+
+                            <button className="close-modal" onClick={() => setShowAdvancedFilters(false)}>Fermer</button>
+                        </div>
                     </div>
-
-                    <div className="slider-group">
-                        <label>Paramètres (M)</label>
-                        <input type="range" min="0" max="10000" step="10"
-                        value={selectedParametersRange[0]}
-                        onChange={(e) => setSelectedParametersRange([parseFloat(e.target.value), selectedParametersRange[1]])}
-                        />
-                        <input type="range" min="0" max="10000" step="10"
-                        value={selectedParametersRange[1]}
-                        onChange={(e) => setSelectedParametersRange([selectedParametersRange[0], parseFloat(e.target.value)])}
-                        />
-                        <span>{selectedParametersRange[0]} - {selectedParametersRange[1]} M</span>
-                    </div>
-
-                    <div className="slider-group">
-                            <label>Tranche d’émission CO2 (g)</label>
-                            <input type="range" min="0" max="1" step="0.01"
-                                value={selectedEmissionRange[0]}
-                                onChange={(e) =>
-                                setSelectedEmissionRange([parseFloat(e.target.value), selectedEmissionRange[1]])
-                                }
-                            />
-                            <input type="range" min="0" max="1" step="0.01"
-                                value={selectedEmissionRange[1]}
-                                onChange={(e) =>
-                                setSelectedEmissionRange([selectedEmissionRange[0], parseFloat(e.target.value)])
-                                }
-                            />
-                            <span>{selectedEmissionRange[0]} - {selectedEmissionRange[1]} g</span>
-                        </div>
-
-                        <div className="slider-group">
-                            <label>Consommation Énergétique (mWh)</label>
-                            <input type="range" min="0" max="250" step="5"
-                                value={selectedEnergyConsumptionRange[0]}
-                                onChange={(e) =>
-                                setSelectedEnergyConsumptionRange([parseFloat(e.target.value), selectedEnergyConsumptionRange[1]])
-                                }
-                            />
-                            <input type="range" min="0" max="250" step="5"
-                                value={selectedEnergyConsumptionRange[1]}
-                                onChange={(e) =>
-                                setSelectedEnergyConsumptionRange([selectedEnergyConsumptionRange[0], parseFloat(e.target.value)])
-                                }
-                            />
-                            <span>{selectedEnergyConsumptionRange[0]} - {selectedEnergyConsumptionRange[1]} mWh</span>
-                        </div>
-
-                            <div className="slider-group">
-                            <label>Temps d’Entraînement (s)</label>
-                            <input type="range" min="0" max="100000" step="1000"
-                                value={selectedTrainingTimeRange[0]}
-                                onChange={(e) =>
-                                setSelectedTrainingTimeRange([parseFloat(e.target.value), selectedTrainingTimeRange[1]])
-                                }
-                            />
-                            <input type="range" min="0" max="100000" step="1000"
-                                value={selectedTrainingTimeRange[1]}
-                                onChange={(e) =>
-                                setSelectedTrainingTimeRange([selectedTrainingTimeRange[0], parseFloat(e.target.value)])
-                                }
-                            />
-                            <span>{selectedTrainingTimeRange[0]} - {selectedTrainingTimeRange[1]} s</span>
-                        </div>
-                        
-                        {/* Accuracy */}
-                        <div className="slider-group">
-                            <label>Précision (%)</label>
-                            <input type="range" min="0" max="100" step="1"
-                            value={selectedAccuracyRange[0]}
-                            onChange={(e) => setSelectedAccuracyRange([parseFloat(e.target.value), selectedAccuracyRange[1]])}
-                            />
-                            <input type="range" min="0" max="100" step="1"
-                            value={selectedAccuracyRange[1]}
-                            onChange={(e) => setSelectedAccuracyRange([selectedAccuracyRange[0], parseFloat(e.target.value)])}
-                            />
-                            <span>{selectedAccuracyRange[0]}% - {selectedAccuracyRange[1]}%</span>
-                        </div>
-
-                        {/* Final Loss */}
-                        <div className="slider-group">
-                            <label>Final Loss</label>
-                            <input type="range" min="0" max="10" step="0.01"
-                            value={selectedLossRange[0]}
-                            onChange={(e) => setSelectedLossRange([parseFloat(e.target.value), selectedLossRange[1]])}
-                            />
-                            <input type="range" min="0" max="10" step="0.01"
-                            value={selectedLossRange[1]}
-                            onChange={(e) => setSelectedLossRange([selectedLossRange[0], parseFloat(e.target.value)])}
-                            />
-                            <span>{selectedLossRange[0]} - {selectedLossRange[1]}</span>
-                        </div>
-
-                        {/* Latency */}
-                        <div className="slider-group">
-                            <label>Latence (ms)</label>
-                            <input type="range" min="0" max="1000" step="10"
-                            value={selectedLatencyRange[0]}
-                            onChange={(e) => setSelectedLatencyRange([parseFloat(e.target.value), selectedLatencyRange[1]])}
-                            />
-                            <input type="range" min="0" max="1000" step="10"
-                            value={selectedLatencyRange[1]}
-                            onChange={(e) => setSelectedLatencyRange([selectedLatencyRange[0], parseFloat(e.target.value)])}
-                            />
-                            <span>{selectedLatencyRange[0]} - {selectedLatencyRange[1]} ms</span>
-                        </div>
-
-                        {/* mAP@50 */}
-                        <div className="slider-group">
-                            <label>mAP@50</label>
-                            <input type="range" min="0" max="1" step="0.01"
-                            value={selectedMap50Range[0]}
-                            onChange={(e) => setSelectedMap50Range([parseFloat(e.target.value), selectedMap50Range[1]])}
-                            />
-                            <input type="range" min="0" max="1" step="0.01"
-                            value={selectedMap50Range[1]}
-                            onChange={(e) => setSelectedMap50Range([selectedMap50Range[0], parseFloat(e.target.value)])}
-                            />
-                            <span>{selectedMap50Range[0]} - {selectedMap50Range[1]}</span>
-                        </div>
-
-                        {/* mAP@50:95 */}
-                        <div className="slider-group">
-                            <label>mAP@50:95</label>
-                            <input type="range" min="0" max="1" step="0.01"
-                            value={selectedMap5095Range[0]}
-                            onChange={(e) => setSelectedMap5095Range([parseFloat(e.target.value), selectedMap5095Range[1]])}
-                            />
-                            <input type="range" min="0" max="1" step="0.01"
-                            value={selectedMap5095Range[1]}
-                            onChange={(e) => setSelectedMap5095Range([selectedMap5095Range[0], parseFloat(e.target.value)])}
-                            />
-                            <span>{selectedMap5095Range[0]} - {selectedMap5095Range[1]}</span>
-                        </div>
-                        {/* studen-teacher-optimisation */}
-                        <div className="checkbox-group">
-                            <label>
-                                <input type="checkbox" checked={asTeacher} onChange={(e) => setAsTeacher(e.target.checked)} />
-                                Modèle enseignant
-                            </label>
-                            <label>
-                                <input type="checkbox" checked={asStudent} onChange={(e) => setAsStudent(e.target.checked)} />
-                                Modèle étudiant
-                            </label>
-                            <label>
-                                <input type="checkbox" checked={hasOptimization} onChange={(e) => setHasOptimization(e.target.checked)} />
-                                Optimisé
-                            </label>
-                        </div>
-                    <button onClick={() => {
-                        setShowAdvancedFilters(false);
-                        fetchFilteredData();
-                     }}>
-                        Appliquer les filtres
-                    </button>
-                 </div>
-                </div>
                 )}
-
             </div>
-            
         </div>
     );
 };
 
 export default Dashboard;
-
