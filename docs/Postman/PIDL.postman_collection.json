@@ -474,12 +474,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?id=1",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?id=1",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -562,12 +563,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?user_id=1",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?user_id=1",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -738,12 +740,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?architecture=CNN",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?architecture=CNN",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -826,12 +829,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?emissions_min=0.01340&emissions_max=0.01670",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?emissions_min=0.01340&emissions_max=0.01670",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -918,12 +922,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?energy_min=0.15&energy_max=0.19",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?energy_min=0.15&energy_max=0.19",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1010,12 +1015,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?creator=Alice",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?creator=Alice",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1098,12 +1104,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?max_training_time=6000",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?max_training_time=6000",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1186,12 +1193,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?model_size_label=n",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?model_size_label=n",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1274,12 +1282,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?model_size_min=80&model_size_max=100",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?model_size_min=80&model_size_max=100",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1366,12 +1375,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?task=Image Classification,Object Detection&max_training_time=6000&creator=Alice",
+									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?task=Image Classification,Object Detection&max_training_time=6000&creator=Alice",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_filtered_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1438,12 +1448,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_full_data_models?id=1",
+									"raw": "{{base_url}}models/get_filtered_full_data_models/?id=1",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_full_data_models"
+										"get_filtered_full_data_models",
+										""
 									],
 									"query": [
 										{
@@ -1476,12 +1487,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{base_url}}models/create_model",
+									"raw": "{{base_url}}models/create_model/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"create_model"
+										"create_model",
+										""
 									]
 								}
 							},
@@ -1508,12 +1520,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{base_url}}models/create_model",
+									"raw": "{{base_url}}models/create_model/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"create_model"
+										"create_model",
+										""
 									]
 								}
 							},

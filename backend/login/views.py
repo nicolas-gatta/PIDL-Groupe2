@@ -62,9 +62,7 @@ def logout_view(request):
     description="Register a new user. The default role is 'Researcher'."
 )
 @api_view(['POST'])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-@group_and_super_user_checks()
+@permission_classes([AllowAny])
 def register_view(request):
     email = request.data.get("email")
     password = request.data.get("password")
@@ -77,12 +75,12 @@ def register_view(request):
         return user_data
     
     try:
-        user = CustomUser.objects.create(
+        user = CustomUser.objects.create_user(
             email =  email,
             password = password,
             first_name = first_name,
             last_name = last_name,
-            role_fk = Role.objects.get(role_id = 3)
+            role_fk = Role.objects.get(role_id = 2)
         )
 
         serializer = CustomUserSerializer(user)

@@ -1,22 +1,25 @@
 // src/routes/AppRouter.jsx 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from '../pages/LoginPage';  
-import HomePage from '../pages/HomePage';   
-import Dashboard from '../pages/Dashboard'; 
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from '../pages/LoginPage';
+import Dashboard from '../pages/Dashboard';
+import AddModelPage from '../pages/AddModelPage'
 
 const AppRouter = () => {
     return (
         <Router>
             <Routes>
-                {/* Route pour la page d'accueil */}
-                <Route path="/" element={<HomePage />} />
+                {/* Rediriger la racine vers /login */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
 
                 {/* Route pour la page de connexion */}
                 <Route path="/login" element={<LoginPage />} />
 
                 {/* Route pour la page du Dashboard */}
                 <Route path="/dashboard" element={<Dashboard />} />
+
+                {/* Route pour la page d'ajout */}
+                <Route path="/ajout" element={<AddModelPage />} />
             </Routes>
         </Router>
     );
