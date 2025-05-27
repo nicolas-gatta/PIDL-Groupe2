@@ -1,9 +1,3 @@
--- BASIC VIEWS --
-
--- =====================================================
--- View: resource
--- Description: Represents the hardware or infrastructure used for model training and evaluation.
--- =====================================================
 CREATE OR REPLACE VIEW `pidl`.`v_resource` AS
     SELECT
         `resource_id` AS `id`,
@@ -122,7 +116,13 @@ CREATE OR REPLACE VIEW `pidl`.`v_evaluation` AS
         `execution_time_ms` AS `execution_time_ms`,
         `energy_consumption_mwh` AS `energy_consumption_mwh`,
         `emissions_gco2eq` AS `emissions_gco2eq`,
+        `average_emissions_per_inference` AS `avg_emissions_per_inference`,
+        `average_energy_per_inference` AS `avg_energy_per_inference`,
         `fps_gpu` AS `fps_gpu`,
+        `fps_cpu` AS `fps_cpu`,
+        `std_cpu` AS `std_cpu`,
+        `std_gpu` AS `std_gpu`,
+        `num_macs` AS `macs`,
         `map_50` AS `map_50`,
         `map_50_95` AS `map_50_95`,
         `evaluation_date` AS `date`,
@@ -148,6 +148,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_quantization` AS
         `quantization_id` AS `id`,
         `quantization_type` AS `type`,
         `quantization_description` AS `description`,
+        `quantization_model_size_reduction` AS `model_size_reduction`,
+        `quantization_memory_reduction` AS `memory_reduction`,
         vp.`name` AS `target_precision`,
         q.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
@@ -170,7 +172,10 @@ CREATE OR REPLACE VIEW `pidl`.`v_pruning` AS
     SELECT
         `pruning_id` AS `id`,
         `pruning_strategy` AS `strategy`,
+        `pruning_scope` AS `scope`,
         `pruning_rate` AS `rate`,
+        `pruning_compression_ratio` AS `compression_ratio`,
+        `pruning_memory_reduction` AS `memory_reduction`,
         `pruning_description` AS `description`,
         p.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,

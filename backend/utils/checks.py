@@ -35,7 +35,7 @@ def group_and_super_user_checks(group_names = []):
 
 def checks_and_get_required_fields(data, required_fields):
     missing_fields = [field for field in required_fields if not data.get(field)]
-    print(missing_fields)
+    #print(missing_fields)
     if missing_fields:
         return Response({"error": f"Missing fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
     return {field: data.get(field) for field in required_fields}

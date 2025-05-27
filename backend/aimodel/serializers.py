@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema_field
 from .models_views import *
 
 class ModelSerializer(serializers.ModelSerializer):
+    creation_date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
     class Meta:
         model = ModelView
         fields = [ 'id', 'name', 'architecture', 'parameters_m', 'layers',  
@@ -21,28 +22,34 @@ class PrecisionSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description']
         
 class EvaluationSerializer(serializers.ModelSerializer):
+    date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
     class Meta:
         model = EvaluationView
         fields = ['id', 'accuracy', 'final_loss', 'latency_ms', 'execution_time_ms', 'energy_consumption_mwh',
-                  'emissions_gco2eq','fps_gpu', 'map_50', 'map_50_95', 'date', 
+                  'emissions_gco2eq','average_emissions_per_inference', 'average_energy_per_inference','fps_gpu','fps_cpu', 'std_cpu', 'std_gpu', 'num_macs', 'map_50', 'map_50_95', 'date', 
                   'cpu', 'gpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 'max_watts']
         
 class QuantizationSerializer(serializers.ModelSerializer):
+    optimization_date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
     class Meta:
         model = QuantizationView
-        fields = ['type', 'target_precision', 'gpu', 'cpu', 'gpu_memory', 'computer_ram', 
+        fields = ['type', 'target_precision','model_size_reduction', 'memory_reduction',
+                  'gpu', 'cpu', 'gpu_memory', 'computer_ram', 
                   'cpu_frenquency', 'max_watts', 'optimization_date']
 
 
 class PruningSerializer(serializers.ModelSerializer):
+    optimization_date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
     class Meta:
         model = PruningView
-        fields = ['strategy', 'rate', 'gpu', 'cpu', 'gpu_memory', 'computer_ram', 
+        fields = ['strategy', 'rate', 'scope', 'compression_ratio', 'memory_reduction'
+                  ,'gpu', 'cpu', 'gpu_memory', 'computer_ram', 
                   'cpu_frenquency', 'max_watts', 'optimization_date']
         
 class KnowledgeDistillationSerializer(serializers.ModelSerializer):
     student = serializers.SerializerMethodField()
     teacher = serializers.SerializerMethodField()
+    optimization_date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
 
     class Meta:
         model = KnowledgeDistillationView
@@ -65,12 +72,13 @@ class KnowledgeDistillationSerializer(serializers.ModelSerializer):
 
 class BasicDataModelSerializer(serializers.ModelSerializer):
     tasks = serializers.SerializerMethodField()
+    creation_date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
 
     class Meta:
         model = BasicDataModel
         fields = ['id', 'name', 'architecture', 'parameters_m', 'layers',  
                   'model_size_label', 'flops_b', 'model_size', 'training_time', 'creation_date',  
-                  'precision', 'creator', 'fps_gpu', 'avg_emissions_gco2eq', 'avg_energy_mwh', 
+                  'precision', 'creator', 'fps_gpu','fps_cpu','std_gpu','std_cpu','num_macs', 'average_emissions_per_inference', 'average_energy_per_inference','avg_emissions_gco2eq', 'avg_energy_mwh', 
                   'map_50', 'map_50_95', 'tasks']
         
     @extend_schema_field(TaskSerializer(many = True))
@@ -88,6 +96,7 @@ class FullDataModelSerializer(serializers.ModelSerializer):
     students = serializers.SerializerMethodField()
     teachers = serializers.SerializerMethodField()
     optimizations = serializers.SerializerMethodField()
+    creation_date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
     
     class Meta:
         model = FullDataModel

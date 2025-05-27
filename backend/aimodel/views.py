@@ -13,6 +13,7 @@ from utils.checks import group_and_super_user_checks, checks_and_get_required_fi
 from django.utils import timezone
 from .models import Model, Precision, Resource, Task, ModelTask, Evaluation, Optimization, ModelOptimization, Quantization, Pruning, KnowledgeDistillation
 from login.models import CustomUser
+from .pagination import CustomPageNumberPagination
 
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,8 @@ class FilteredModelListView(generics.ListAPIView):
     filterset_class = BasicDataFilter
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
+    
     
     def list(self, data):
         response = super().list({data})
@@ -154,7 +157,7 @@ def create_model(request):
     required_fields_evaluation = ["resources_name", "resources_cpu", "resources_cpu_frequency", "resources_gpu", "resources_gpu_memory",
                                   "resources_computer_memory", "resources_max_watt", "resources_description", "accuracies", 
                                   "final_losses", "latencies_ms", "executions_time_ms", "energies_consumption_mwh",
-                                  "emissions_gco2eqs", "fps_gpus", "map_50s", "map_50_95s", "dates"]
+                                  "emissions_gco2eqs","avg_emissions_per_inference","avg_energy_per_inference", "fps_gpus","fps_cpus","std_gpus","std_cpus","num_macs", "map_50s", "map_50_95s", "dates"]
     
     model_data = checks_and_get_required_fields(data = request.data, required_fields = required_model_fields)
     
@@ -187,8 +190,8 @@ def create_model(request):
                                         "resources_computer_memory", "resources_max_watt", "resources_description", "names", "dates", 
                                         "descriptions", "types"]
         
-        required_fields_quantization = ["quantizations_type", "quantizations_description", "quantizations_precision_name"]
-        required_fields_pruning = ["prunings_strategy", "prunings_rate", "prunings_description"]
+        required_fields_quantization = ["quantizations_type", "quantizations_precision_name", "quantizations_model_size_reduction", "quantizations_memory_reduction","quantizations_description"]
+        required_fields_pruning = ["prunings_strategy","prunings_scope","prunings_compression_ratio", "prunings_memory_reduction", "prunings_rate", "prunings_description"]
         required_fields_knwoledge = ["knowledges_softmax","knowledges_loss_function", "knowledges_descritpion", "knowledges_teacher"]
         
         optimization_quantization_instance = []
@@ -196,42 +199,50 @@ def create_model(request):
         optimization_knowledge_instance = []
         
         optimization_data = checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_optimization)
-        
-        print(optimization_data["resources_name"])
-        
+            
         optimizations_resource_instance = create_or_get_resource_instance(data = optimization_data)
         
         optimizations_instance = create_optimization_instance(data = optimization_data, resources_instance = optimizations_resource_instance)
         
         _ = create_model_optimization_instance(model_instance = model_instance, optimizations_instance = optimizations_instance)
+        types = optimization_data["types"]
         
-        if "Quantization" in optimization_data["types"]:
-            optimization_data.update(checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_quantization))
-            
-        if "Pruning" in optimization_data["types"]:
-            optimization_data.update(checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_pruning))
-            
-        if "Knowledge Distillation" in optimization_data["types"]:
-            optimization_data.update(checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_knwoledge))
-                
+        if "Quantization" in types:
+            quant_fields = checks_and_get_required_fields(data=request.data["optimizations"], required_fields=required_fields_quantization)
+            if isinstance(quant_fields, Response):
+                return quant_fields
+            optimization_data.update(quant_fields)
+
+        if "Pruning" in types:
+            pruning_fields = checks_and_get_required_fields(data=request.data["optimizations"], required_fields=required_fields_pruning)
+            if isinstance(pruning_fields, Response):
+                return pruning_fields
+            optimization_data.update(pruning_fields)
+
+        if "Knowledge Distillation" in types:
+            knowledge_fields = checks_and_get_required_fields(data=request.data["optimizations"], required_fields=required_fields_knwoledge)
+            if isinstance(knowledge_fields, Response):
+                return knowledge_fields
+            optimization_data.update(knowledge_fields)
+
         for index, optimization_type in enumerate(optimization_data["types"]):
-            if optimization_type == "Quantization":
+            if "Quantization" in optimization_data["types"]:
                 optimization_quantization_instance.append(optimizations_instance[index])
                 
-            elif optimization_type == "Pruning":
+            elif "Pruning" in optimization_data["types"]:
                 optimization_pruning_instance.append(optimizations_instance[index])
                 
-            elif optimization_type == "Knowledge Distillation":
+            elif "Knowledge Distillation" in optimization_data["types"]:
                 optimization_knowledge_instance.append(optimizations_instance[index])
                 
         if (optimization_quantization_instance != []):
             create_quantization_instance(data = optimization_data, optimizations_instance = optimization_quantization_instance)
             
         if (optimization_pruning_instance != []):
-            create_pruning_instance(data = optimization_data, optimizations_instance = optimization_quantization_instance)
+            create_pruning_instance(data = optimization_data, optimizations_instance = optimization_pruning_instance)
             
         if (optimization_knowledge_instance != []):
-            create_knowledge_distillation_instance(data = optimization_data, optimizations_instance = optimization_quantization_instance, model_instance = model_instance)
+            create_knowledge_distillation_instance(data = optimization_data, optimizations_instance = optimization_knowledge_instance, model_instance = model_instance)
         
     return Response({"message": "Model Created Successfully"}, status = status.HTTP_200_OK)
 
@@ -339,7 +350,13 @@ def create_evaluation_instance(data, model_instance, resources_instance):
             execution_time_ms = data["executions_time_ms"][index],
             energy_consumption_mwh = data["energies_consumption_mwh"][index],
             emissions_gco2eq = data["emissions_gco2eqs"][index],
+            average_emissions_per_inference = data["avg_emissions_per_inference"][index],
+            average_energy_per_inference = data["avg_energy_per_inference"][index],
             fps_gpu = data["fps_gpus"][index],
+            fps_cpu = data["fps_cpus"][index],
+            std_gpu = data["std_gpus"][index],
+            std_cpu = data["std_cpus"][index],
+            num_macs = data["num_macs"][index],
             map_50 = data["map_50s"][index],
             map_50_95 = data["map_50_95s"][index],
             evaluation_date = data["dates"][index],
@@ -380,8 +397,10 @@ def create_quantization_instance(data, optimizations_instance):
     for index in range(len(optimizations_instance)):
         quantization = Quantization(
             quantization_type = data["quantizations_type"][index],
-            quantization_description = data["quantizations_description"][index], 
-            precision_fk = Precision.objects.get(name = data["quantizations_precision_name"][index]),
+            quantization_memory_reduction = data["quantizations_memory_reduction"][index], 
+            quantization_model_size_reduction = data["quantizations_model_size_reduction"][index],
+            quantization_description = data["quantizations_description"][index],
+            precision_fk = Precision.objects.get(precision_name = data["quantizations_precision_name"][index]),
             optimization_fk = optimizations_instance[index]
         )
         
@@ -395,9 +414,12 @@ def create_pruning_instance(data, optimizations_instance):
     
     for index in range(len(optimizations_instance)):
         pruning = Pruning(
-            pruning_strategy = data["prunings_strategy"],
-            pruning_rate = data["prunings_rate"],
-            pruning_description = data["prunings_description"],
+            pruning_strategy = data["prunings_strategy"][index],
+            pruning_scope = data["prunings_scope"][index],
+            pruning_compression_ratio = data["prunings_compression_ratio"][index],
+            pruning_memory_reduction = data["prunings_memory_reduction"][index],
+            pruning_rate = data["prunings_rate"][index],
+            pruning_description = data["prunings_description"][index],
             optimization_fk = optimizations_instance[index]
         )
         
@@ -412,7 +434,7 @@ def create_knowledge_distillation_instance(data, optimizations_instance, model_i
         knowledge = KnowledgeDistillation(
             softmax_temperature = data["knowledges_softmax"][index],
             loss_function = data["knowledges_loss_function"][index],
-            knowledged_distillation_description = data["knowledges_descritpion"][index],
+            knowledge_distillation_description = data["knowledges_descritpion"][index],
             student = model_instance,
             teacher = Model.objects.get(model_id = data["knowledges_teacher"][index]),
             optimization_fk = optimizations_instance[index]

@@ -89,7 +89,13 @@ class EvaluationView(ResourceAbstract):
     execution_time_ms = models.FloatField()
     energy_consumption_mwh = models.FloatField()
     emissions_gco2eq = models.FloatField()
+    average_emissions_per_inference = models.FloatField()
+    average_energy_per_inference = models.FloatField()
     fps_gpu = models.FloatField()
+    fps_cpu = models.FloatField()
+    std_cpu = models.FloatField()
+    std_gpu = models.FloatField()
+    num_macs = models.FloatField()
     map_50 = models.FloatField()
     map_50_95 = models.FloatField()
     date = models.DateTimeField()
@@ -105,6 +111,8 @@ class EvaluationView(ResourceAbstract):
 class QuantizationView(ResourceAbstract):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=50, blank=True, null=True)
+    model_size_reduction = models.FloatField(blank=True, null=True)
+    memory_reduction = models.FloatField(blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     target_precision = models.CharField(max_length=50, blank=True, null=True)
     optimization_id = models.IntegerField()
@@ -119,7 +127,10 @@ class QuantizationView(ResourceAbstract):
 class PruningView(ResourceAbstract):
     id = models.AutoField(primary_key=True)
     strategy = models.CharField(max_length=50, blank=True, null=True)
+    scope = models.CharField(max_length=50, blank=True, null=True)
     rate = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
+    compression_ratio = models.FloatField(blank=True, null=True)
+    memory_reduction = models.FloatField(blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     optimization_id = models.IntegerField()
     name = None
@@ -178,6 +189,12 @@ class BasicDataModel(ModelAbstract):
     avg_energy_mwh = models.FloatField(blank=False, null=False)
     map_50 = models.FloatField(blank=False, null=False)
     map_50_95 = models.FloatField(blank=False, null=False)
+    average_emissions_per_inference = models.DecimalField(max_digits=12, decimal_places=10, blank=True, null=True)
+    average_energy_per_inference = models.DecimalField(max_digits=12, decimal_places=10, blank=True, null=True)
+    fps_cpu = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    std_cpu = models.DecimalField(max_digits=8, decimal_places=5, blank=True, null=True)
+    std_gpu = models.DecimalField(max_digits=8, decimal_places=5, blank=True, null=True)
+    num_macs = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     
     class Meta:
         managed = False

@@ -45,35 +45,5 @@ python manage.py runserver
 
 ## Accès à la documentation API
 
-- Documentation Swagger (interactive) : [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
-- Documentation ReDoc : [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/redoc/)
-
-## quelques accès au navigateur:
-
-1. Lister tous les modèles (Model)
-http://127.0.0.1:8000/api/v1/models/
-
-2. Obtenir les détails d’un modèle spécifique (ex: modèle avec id=1)
-
-http://127.0.0.1:8000/api/v1/models/1/
-
-3. Filtrer les modèles par architecture
-
-http://127.0.0.1:8000/api/v1/models/?architecture=CNN
-
-4. Recherche dans le nom du modèle
-
-http://127.0.0.1:8000/api/v1/models/?search=YOLO
-
-5. Filtrer les évaluations selon une valeur minimale de accuracy
-
-http://127.0.0.1:8000/api/v1/evaluations/?accuracy__gte=0.80
-
-
-find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-find . -path "*/migrations/*.pyc" -delete
-mysql -u root -p < ../database/full_script.sql
-python manage.py makemigrations 
-python manage.py migrate    
-mysql -u root -p pidl < ../database/init_permissions.sql
-python manage.py runserver
+- Documentation Swagger (interactive) : [http://127.0.0.1:8000/api/docs/swagger/](http://127.0.0.1:8000/api/docs/swagger/)
+- Documentation ReDoc : [http://127.0.0.1:8000/api/docs/redoc/](http://127.0.0.1:8000/api/docs/redoc/)

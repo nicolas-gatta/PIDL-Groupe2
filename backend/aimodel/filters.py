@@ -4,11 +4,14 @@ from .models import ModelTask, Task
 from .models_views import BasicDataModel
 
 class StrictFilterSet(django_filters.FilterSet):
+
+    IGNORE_KEYS = {"page", "page_size", "ordering", "format"}
+
     def __init__(self, data=None, *args, **kwargs):
         if data is not None:
             allowed_fields = set(self.get_filters().keys())
             incoming_fields = set(data.keys())
-            invalid_fields = incoming_fields - allowed_fields
+            invalid_fields = incoming_fields - allowed_fields - self.IGNORE_KEYS
             if invalid_fields:
                 raise ValidationError(f"Invalid filter(s): {', '.join(invalid_fields)}")
         super().__init__(data, *args, **kwargs)

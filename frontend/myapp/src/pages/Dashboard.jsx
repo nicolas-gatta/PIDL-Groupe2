@@ -34,6 +34,12 @@ const Dashboard = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
 
+    //pagination 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(1); // pour savoir combien de pages au total
+
+
     // Redirection si pas connecté
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -66,11 +72,26 @@ const Dashboard = () => {
         if (selectedCreator) queryParams.append('creator', selectedCreator);
         if (selectedID) queryParams.append('id', selectedID);
 
-        queryParams.append('emissions_min', selectedEmissionRange[0]);
-        queryParams.append('emissions_max', selectedEmissionRange[1]);
-        queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
-        queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
-        queryParams.append('max_training_time', selectedTrainingTimeRange[1]);
+        
+        // Pour ne pas permettre les filtres par défauts
+        if (selectedEmissionRange[0] > 0 || selectedEmissionRange[1] < 1) {
+            queryParams.append('emissions_min', selectedEmissionRange[0]);
+            queryParams.append('emissions_max', selectedEmissionRange[1]);
+        }
+
+        if (selectedEnergyConsumptionRange[0] > 0 || selectedEnergyConsumptionRange[1] < 500) {
+            queryParams.append('energy_min', selectedEnergyConsumptionRange[0]);
+            queryParams.append('energy_max', selectedEnergyConsumptionRange[1]);
+        }
+
+        if (selectedTrainingTimeRange[0] > 0 || selectedTrainingTimeRange[1] < 1000000) {
+            queryParams.append('max_training_time', selectedTrainingTimeRange[1]);
+        }
+
+
+        // paramètre de pagination 
+        queryParams.append('page', currentPage);
+        queryParams.append('page_size', pageSize);
 
         if (asTeacher) queryParams.append('as_teacher', 'true');
         if (asStudent) queryParams.append('as_student', 'true');
@@ -85,7 +106,11 @@ const Dashboard = () => {
             });
             if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
             const result = await response.json();
-            setData(result.models || []);
+            console.log("result",result);
+            console.log("result.count",result.models.count);
+            setData(result.models.results || []);
+            
+            setTotalPages(Math.ceil(result.models.count / pageSize));
         } catch (err) {
             setError(err.message);
         } finally {
@@ -94,7 +119,7 @@ const Dashboard = () => {
     }, [
         selectedTask, selectedType, selectedCreator, selectedID,
         selectedEmissionRange, selectedEnergyConsumptionRange, selectedTrainingTimeRange,
-        asTeacher, asStudent, hasOptimization
+        asTeacher, asStudent, hasOptimization, currentPage, pageSize
     ]);
 
     useEffect(() => {
@@ -126,6 +151,12 @@ const Dashboard = () => {
         { key: 'training_time', label: 'Temps entraînement (s)' },
         { key: 'creation_date', label: 'Date création' },
         { key: 'fps_gpu', label: 'FPS GPU' },
+        { key: 'fps_cpu', label: 'FPS CPU' },
+        { key: 'std_gpu', label: 'STD GPU' },
+        { key: 'std_cpu', label: 'STD CPU' },
+        { key: 'num_macs', label: 'NUM MACS' },
+        { key: 'average_emissions_per_inference', label: "Émissions moyennes par inférence (gCO₂eq)" },
+        { key: 'average_energy_per_inference', label: "Énergie moyenne par inférence (mWh)" },
         { key: 'avg_emissions_gco2eq', label: 'CO2 (g)' },
         { key: 'avg_energy_mwh', label: 'Énergie (mWh)' },
         { key: 'map_50', label: 'mAP@50' },
@@ -256,6 +287,30 @@ const Dashboard = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                    <div class="pagination">
+                        <button onClick={()=> setCurrentPage(p => Math.max(p - 1, 1))} disabled ={currentPage === 1}>
+                            Précédent
+                        </button>
+                        <span>Page {currentPage} / {totalPages} </span>
+                        <button onClick={()=> setCurrentPage(p => Math.min(p +1, totalPages))} disabled ={currentPage === totalPages}>
+                            Suivant
+                        </button>
+                            Afficher :
+                            <select
+                            onChange={(e) => {
+                                setPageSize(parseInt(e.target.value));   // mettre à jour la taille de page
+                                setCurrentPage(1);                      
+                            }}
+                            value={pageSize}
+                            >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                            </select>
+                            lignes
                     </div>
                 </main>
 
