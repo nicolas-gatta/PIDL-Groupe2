@@ -110,7 +110,13 @@ CREATE TABLE `pidl`.`evaluation`(
    `execution_time_ms` FLOAT,
    `energy_consumption_mwh` FLOAT,   -- ex: 0.1346
    `emissions_gco2eq` FLOAT,         -- ex: 0.0262
+   `average_emissions_per_inference` FLOAT,
+   `average_energy_per_inference` FLOAT,
    `fps_gpu` FLOAT,                  -- ex: 910.80
+   `fps_cpu` FLOAT,
+   `std_cpu` FLOAT,
+   `std_gpu` FLOAT,
+   `num_macs` FLOAT,
    `map_50` FLOAT,                   -- ex: 0.847
    `map_50_95` FLOAT,                -- ex: 0.6655
    `evaluation_date` DATETIME NOT NULL,
@@ -126,9 +132,11 @@ CREATE TABLE `pidl`.`evaluation`(
 -- =====================================================
 CREATE TABLE `pidl`.`quantization`(
    `quantization_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `quantization_type` VARCHAR(50),
+   `quantization_type` VARCHAR(50),             -- e.g., static, dynamic, qat
    `quantization_description` VARCHAR(100),
-   `precision_fk` INT NOT NULL,
+   `precision_fk` INT NOT NULL,            -- e.g., int8, fp16
+   `quantization_model_size_reduction` FLOAT,
+   `quantization_memory_reduction` FLOAT,
    `optimization_fk` INT NOT NULL UNIQUE,
    CONSTRAINT `FK_quantization_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE,
    CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
@@ -140,8 +148,11 @@ CREATE TABLE `pidl`.`quantization`(
 -- =====================================================
 CREATE TABLE `pidl`.`pruning`(
    `pruning_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `pruning_strategy` VARCHAR(50),
-   `pruning_rate` FLOAT,
+   `pruning_strategy` VARCHAR(50),    -- e.g., magnitude, structured, random
+   `pruning_scope` VARCHAR(50),       -- e.g., global, local
+   `pruning_rate` FLOAT,              
+   `pruning_compression_ratio` FLOAT,   
+   `pruning_memory_reduction` FLOAT,        
    `pruning_description` VARCHAR(100),
    `optimization_fk` INT NOT NULL UNIQUE,
    CONSTRAINT `FK_pruning_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
