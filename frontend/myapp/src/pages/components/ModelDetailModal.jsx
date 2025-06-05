@@ -1,4 +1,3 @@
-// src/components/ModelDetailModal.jsx
 import React, { useState, useEffect } from 'react';
 import './ModelDetailModal.css';
 
@@ -80,7 +79,7 @@ export default function ModelDetailModal({ model: initialModel, onClose }) {
     return null;
   }
 
-  // On extrait les champs exposés par le back
+  // On extrait les champs exposés par le backend
   const {
     name,
     architecture,

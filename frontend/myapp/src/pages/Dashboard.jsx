@@ -1,8 +1,7 @@
-// src/pages/Dashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBars, FaArrowLeft } from 'react-icons/fa';
-import ModelDetailModal from '../components/ModelDetailModal';
+import ModelDetailModal from './components/ModelDetailModal';
 import './Dashboard.css';
 
 const Dashboard = () => {
