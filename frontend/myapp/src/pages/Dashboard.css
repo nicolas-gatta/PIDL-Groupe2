@@ -8,7 +8,7 @@
     padding-top: 60px; 
 }
 
-/* En-tête */
+/* En-tï¿½te */
 .brand-header {
     position: fixed;
     top: 0;
@@ -106,12 +106,12 @@
     margin-bottom: 15px;
 }
 .advanced-filter-toggle {
-    background-color: #2980b9; /* bleu similaire à ton bouton "new-model-button" */
+    background-color: #2980b9; /* bleu similaire ï¿½ ton bouton "new-model-button" */
     border: none;
     padding: 10px;
     color: white;
     cursor: pointer;
-    width: 100%; /* même largeur que logout-button */
+    width: 100%; /* mï¿½me largeur que logout-button */
     border-radius: 5px;
     margin-bottom: 20px; /* pour bien espacer */
     font-weight: 700;
@@ -120,7 +120,7 @@
 }
 
     .advanced-filter-toggle:hover {
-        background-color: #1c5980; /* un bleu plus foncé au hover */
+        background-color: #1c5980; /* un bleu plus foncï¿½ au hover */
     }
 
 
@@ -135,7 +135,7 @@
     transition: padding-left 0.3s ease;
 }
 
-/* Barre supérieure : bouton + recherche */
+/* Barre supï¿½rieure : bouton + recherche */
 .toolbar {
     display: flex;
     justify-content: space-between;
@@ -240,7 +240,7 @@ th {
     }
 }
 
-/* ======= Ajout pour filtrage avancé / modal ======= */
+/* ======= Ajout pour filtrage avancï¿½ / modal ======= */
 .modal-title {
     margin-top: 0;
     margin-bottom: 20px;
@@ -343,3 +343,16 @@ th {
     .close-modal:hover {
         background-color: #1c5980;
     }
+
+    .model-name-button {
+  background: none;
+  border: none;
+  color: #2148C0;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.model-name-button:hover {
+  color: #4973FD;
+}
