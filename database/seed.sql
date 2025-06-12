@@ -35,10 +35,11 @@ VALUES
 -- =====================================================
 INSERT INTO `pidl`.`task` (`task_id`, `task_name` ,`task_description`) 
 VALUES 
-(1, 'Classification', 'Assign labels to images'),
-(2, 'Detection', 'Detect and localize objects'),
-(3, 'Generation', 'Generate human-like text'),
-(4, 'Segmentation', 'Divide an input into meaningful parts, such as outlining objects pixel by pixel');
+(1, 'Image Classification', 'Assign labels to images'),
+(2, 'Object Detection', 'Detect and localize objects'),
+(3, 'Text Generation', 'Generate human-like text'),
+(4, 'Image Segmentation', 'Divide an input into meaningful parts, such as outlining objects pixel by pixel'),
+(5, 'Text Classification', 'Assign labels to text');
 
 -- =====================================================
 -- Insert Data: optimization

@@ -10,12 +10,12 @@ CREATE DATABASE `pidl`;
 -- =====================================================
 CREATE TABLE `pidl`.`resource`(
    `resource_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `resource_name` VARCHAR(50),
+   `resource_name` VARCHAR(50) UNIQUE,
    `cpu_type` VARCHAR(50),
    `memory_gb` INT,
    `gpu_type` VARCHAR(50),
    `memory_gpu` INT,
-   `cpu_frequency_ghz` DECIMAL(10, 2),
+   `cpu_frequency_ghz` FLOAT,
    `max_power_watts` INT,
    `resource_description` VARCHAR(100)
 )DEFAULT CHARSET = utf8mb4;
@@ -87,7 +87,7 @@ CREATE TABLE `pidl`.`user` (
 -- =====================================================
 CREATE TABLE `pidl`.`model`(
    `model_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `model_name` VARCHAR(100),
+   `model_name` VARCHAR(100) UNIQUE,
    `architecture` VARCHAR(100),
    `parameter_count` FLOAT,          -- ex: 3.01, 11.13, 25.85
    `layer_count` INT,
@@ -206,12 +206,6 @@ CREATE TABLE `pidl`.`model_task`(
 
 
 -- File: c:\Users\Utilisateur\Desktop\Projet\PIDL-Groupe2\database\views.sql
--- BASIC VIEWS --
-
--- =====================================================
--- View: resource
--- Description: Represents the hardware or infrastructure used for model training and evaluation.
--- =====================================================
 CREATE OR REPLACE VIEW `pidl`.`v_resource` AS
     SELECT
         `resource_id` AS `id`,
@@ -328,10 +322,10 @@ CREATE OR REPLACE VIEW `pidl`.`v_evaluation` AS
         `final_loss` AS `final_loss`,
         `latency_ms` AS `latency_ms`,
         `execution_time_ms` AS `execution_time_ms`,
-        `energy_consumption_mwh` AS `energy_consumption_mwh`,
-        `emissions_gco2eq` AS `emissions_gco2eq`,
-        `average_emissions_per_inference` AS `average_emissions_per_inference`,
-        `average_energy_per_inference` AS `average_energy_per_inference`,
+        `energy_consumption_mwh` AS `total_energy_consumption_mwh`,
+        `emissions_gco2eq` AS `total_emissions_gco2eq`,
+        `average_emissions_per_inference` AS `avg_emissions_per_inference`,
+        `average_energy_per_inference` AS `avg_energy_per_inference`,
         `fps_gpu` AS `fps_gpu`,
         `fps_cpu` AS `fps_cpu`,
         `std_cpu` AS `std_cpu`,
@@ -361,9 +355,9 @@ CREATE OR REPLACE VIEW `pidl`.`v_quantization` AS
     SELECT
         `quantization_id` AS `id`,
         `quantization_type` AS `type`,
+        `quantization_description` AS `description`,
         `quantization_model_size_reduction` AS `model_size_reduction`,
         `quantization_memory_reduction` AS `memory_reduction`,
-        `quantization_description` AS `description`,
         vp.`name` AS `target_precision`,
         q.`optimization_fk` AS `optimization_id`,
         vo.`cpu` AS `cpu`,
@@ -485,13 +479,13 @@ CREATE OR REPLACE VIEW `pidl`.`v_simplify_data_model` AS
         vm.`creator` AS `creator`,
         ve.`fps_gpu` AS `fps_gpu`,
         ve.`fps_cpu` AS `fps_cpu`,
-        ve.`std_gpu` AS `std_gpu`,
         ve.`std_cpu` AS `std_cpu`,
+        ve.`std_gpu` AS `std_gpu`,
         ve.`num_macs` AS `num_macs`,
-        ve.`average_emissions_per_inference` AS `average_emissions_per_inference`,
-        ve.`average_energy_per_inference` AS `average_energy_per_inference`,
-        ve.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
-        ve.`energy_consumption_mwh` AS `avg_energy_mwh`,
+        ve.`total_energy_consumption_mwh` AS `total_energy_consumption_mwh`,
+        ve.`total_emissions_gco2eq` AS `total_emissions_gco2eq`,
+        ve.`avg_emissions_per_inference` AS `avg_emissions_per_inference`,
+        ve.`avg_energy_per_inference` AS `avg_energy_per_inference`,
         ve.`map_50` AS `map_50`,
         ve.`map_50_95` AS `map_50_95`
 
@@ -500,6 +494,7 @@ CREATE OR REPLACE VIEW `pidl`.`v_simplify_data_model` AS
                                                     WHERE `model_id` = vm.`id`
                                                     ORDER BY `date` DESC
                                                     LIMIT 1);
+
 
 -- File: c:\Users\Utilisateur\Desktop\Projet\PIDL-Groupe2\database\stored_procedures.sql
 DELIMITER //
@@ -546,7 +541,9 @@ INSERT INTO `pidl`.`task` (`task_id`, `task_name` ,`task_description`)
 VALUES 
 (1, 'Image Classification', 'Assign labels to images'),
 (2, 'Object Detection', 'Detect and localize objects'),
-(3, 'Text Generation', 'Generate human-like text');
+(3, 'Text Generation', 'Generate human-like text'),
+(4, 'Image Segmentation', 'Divide an input into meaningful parts, such as outlining objects pixel by pixel'),
+(5, 'Text Classification', 'Assign labels to text');
 
 -- =====================================================
 -- Insert Data: optimization
@@ -583,7 +580,7 @@ VALUES
 (8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, 8000, '2024-01-08 10:00:00', 'Small model int8', 2, 5),
 (9, 'MobileNetV2-base', 'CNN', 3.5, 88, 's', 307.45, 112.16, 5000, '2025-04-28 09:00:00', 'Base MobileNetV2 model', 2, 3),
 (10, 'ResNet18-base', 'CNN', 11.69, 100, 'm', 1816.56, 374.06, 7000, '2025-04-28 09:30:00', 'Base ResNet18 model', 3, 3),
-(11, 'MobileNetV2-quant-int8', 'RNN', 0.73, 88, 's', 64.26, 23.44, 5100, '2025-04-28 10:00:00', 'Quantized MobileNetV2 INT8', 3, 5),
+(11, 'MobileNetV2-quant-int8', 'CNN', 0.73, 88, 's', 64.26, 23.44, 5100, '2025-04-28 10:00:00', 'Quantized MobileNetV2 INT8', 3, 5),
 (12, 'ResNet18-quant-int8', 'CNN', 3.18, 100, 'm', 494.33, 101.79, 7200, '2025-04-28 10:30:00', 'Quantized ResNet18 INT8', 3, 5);
 
 
@@ -673,5 +670,7 @@ VALUES
 (10, 10, 1),
 (11, 11, 1),
 (12, 12, 1);
+
+
 
 

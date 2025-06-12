@@ -78,8 +78,9 @@ class BasicDataModelSerializer(serializers.ModelSerializer):
         model = BasicDataModel
         fields = ['id', 'name', 'architecture', 'parameters_m', 'layers',  
                   'model_size_label', 'flops_b', 'model_size', 'training_time', 'creation_date',  
-                  'precision', 'creator', 'fps_gpu','fps_cpu','std_gpu','std_cpu','num_macs', 'average_emissions_per_inference', 'average_energy_per_inference','avg_emissions_gco2eq', 'avg_energy_mwh', 
-                  'map_50', 'map_50_95', 'tasks']
+                  'precision', 'creator', 'fps_gpu','fps_cpu','std_gpu','std_cpu','num_macs', 
+                  'avg_emissions_per_inference', 'avg_energy_per_inference',
+                  'total_emissions_gco2eq', 'total_energy_consumption_mwh', 'map_50', 'map_50_95', 'tasks']
         
     @extend_schema_field(TaskSerializer(many = True))
     def get_tasks(self, obj):

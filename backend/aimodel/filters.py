@@ -24,10 +24,10 @@ class BasicDataFilter(StrictFilterSet):
     model_size_label = django_filters.CharFilter(lookup_expr='iexact')
     model_size_min = django_filters.NumberFilter(field_name='model_size', lookup_expr='gte')
     model_size_max = django_filters.NumberFilter(field_name='model_size', lookup_expr='lte')
-    emissions_min = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='gte')
-    emissions_max = django_filters.NumberFilter(field_name='avg_emissions_gco2eq', lookup_expr='lte')
-    energy_min = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='gte')
-    energy_max = django_filters.NumberFilter(field_name='avg_energy_mwh', lookup_expr='lte')
+    emissions_min = django_filters.NumberFilter(field_name='avg_emissions_per_inference', lookup_expr='gte')
+    emissions_max = django_filters.NumberFilter(field_name='avg_emissions_per_inference', lookup_expr='lte')
+    energy_min = django_filters.NumberFilter(field_name='avg_energy_per_inference', lookup_expr='gte')
+    energy_max = django_filters.NumberFilter(field_name='avg_energy_per_inference', lookup_expr='lte')
     max_training_time = django_filters.NumberFilter(field_name='training_time', lookup_expr='lte')
     user_id = django_filters.NumberFilter(field_name='user_id')
     creator = django_filters.CharFilter(lookup_expr='icontains')
@@ -40,7 +40,11 @@ class BasicDataFilter(StrictFilterSet):
         
         task_names = [v.strip() for v in value.split(',') if v.strip()]
         
+        print(task_names)
+        
         task_ids = Task.objects.filter(task_name__in=task_names).values_list('task_id', flat=True)
+        
+        print(task_ids)
         
         model_ids = ModelTask.objects.filter(task_fk_id__in=task_ids).values_list('model_fk_id', flat=True)
 

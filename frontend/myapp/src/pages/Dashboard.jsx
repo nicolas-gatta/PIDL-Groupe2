@@ -156,8 +156,8 @@ const Dashboard = () => {
     { key: 'num_macs', label: 'NUM MACS' },
     { key: 'average_emissions_per_inference', label: 'Émissions moyennes / inférence (gCO₂eq)' },
     { key: 'average_energy_per_inference', label: 'Énergie moyenne / inférence (mWh)' },
-    { key: 'avg_emissions_gco2eq', label: 'CO₂ (g)' },
-    { key: 'avg_energy_mwh', label: 'Énergie (mWh)' },
+    { key: 'total_emissions_gco2eq', label: 'CO₂ (g)' },
+    { key: 'total_energy_mwh', label: 'Énergie (mWh)' },
     { key: 'map_50', label: 'mAP@50' },
     { key: 'map_50_95', label: 'mAP@50:95' },
   ];

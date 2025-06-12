@@ -15,7 +15,6 @@ from .models import Model, Precision, Resource, Task, ModelTask, Evaluation, Opt
 from login.models import CustomUser
 from .pagination import CustomPageNumberPagination
 
-
 logger = logging.getLogger(__name__)
 
 @extend_schema(
@@ -110,8 +109,14 @@ def get_all_tasks(request):
 def get_all_simplify_data_models(request):
     try:
         models = BasicDataModel.objects.all()
-        serializer = BasicDataModelSerializer(models, many=True)
-        return Response({"models": serializer.data}, status = status.HTTP_200_OK)
+        
+        paginator = CustomPageNumberPagination()
+        
+        result_page = paginator.paginate_queryset(models, request)
+        
+        serializer = BasicDataModelSerializer(result_page, many=True)
+        
+        return Response({"models": paginator.get_paginated_response(serializer.data).data}, status = status.HTTP_200_OK)
     except BasicDataModel.DoesNotExist:
         return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND) 
 

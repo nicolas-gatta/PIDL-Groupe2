@@ -10,7 +10,7 @@ CREATE TABLE `pidl`.`resource`(
    `memory_gb` INT,
    `gpu_type` VARCHAR(50),
    `memory_gpu` INT,
-   `cpu_frequency_ghz` DECIMAL(10, 2),
+   `cpu_frequency_ghz` FLOAT,
    `max_power_watts` INT,
    `resource_description` VARCHAR(100)
 )DEFAULT CHARSET = utf8mb4;
