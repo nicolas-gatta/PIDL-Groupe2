@@ -6,6 +6,7 @@ urlpatterns = [
     path('get_full_data_models/', FilteredFullModelListView.as_view(), name = "get_full_data_models"),
     path('get_all_tasks/', get_all_tasks, name = "get_all_tasks"),
     path('get_all_precisions/', get_all_precisions, name = "get_all_precisions"),
+    path('get_all_architecture/', get_all_model_architecture, name = "get_all_architecture"),
     
     path('create_model/', create_model, name = "create_model_json"),
     

@@ -1,7 +1,7 @@
 import django_filters
 from rest_framework.exceptions import ValidationError 
 from .models import ModelTask, Task
-from .models_views import BasicDataModel
+from .models_views import BasicDataModel, TaskView, ModelTaskView
 
 class StrictFilterSet(django_filters.FilterSet):
 
@@ -40,8 +40,8 @@ class BasicDataFilter(StrictFilterSet):
         
         task_names = [v.strip() for v in value.split(',') if v.strip()]
         
-        task_ids = Task.objects.filter(task_name__in=task_names).values_list('task_id', flat=True)
+        task_ids = TaskView.objects.filter(name__in=task_names).values_list('id', flat=True)
         
-        model_ids = ModelTask.objects.filter(task_fk_id__in=task_ids).values_list('model_fk_id', flat=True)
+        model_ids = ModelTaskView.objects.filter(task_id__in=task_ids).values_list('model_id', flat=True)
 
         return queryset.filter(id__in=model_ids)

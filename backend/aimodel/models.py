@@ -31,6 +31,7 @@ class Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     task_name = models.CharField(max_length=50, blank=True, null=True)
     task_description = models.CharField(max_length=150, blank=True, null=True)
+    task_color = models.CharField(max_length=150, blank=True, null=True)
 
     class Meta:
         managed = False

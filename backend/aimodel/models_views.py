@@ -55,6 +55,7 @@ class TaskView(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, blank=True, null=True)
     description = models.CharField(max_length=150, blank=True, null=True)
+    color = models.CharField(max_length=150, blank=True, null=True)
 
     class Meta:
         managed = False

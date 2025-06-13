@@ -14,8 +14,8 @@ class ModelSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskView
-        fields = ['id', 'name', 'description']
-        
+        fields = ['id', 'name', 'description', 'color']
+
 class PrecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrecisionView

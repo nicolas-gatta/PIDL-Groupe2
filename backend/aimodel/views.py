@@ -96,6 +96,29 @@ def get_all_tasks(request):
         return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
 
 @extend_schema(
+    summary="List of architecture",
+    description="Returns all the architecture.",
+    responses={
+        200: FullDataModelSerializer(many=True),
+        403: OpenApiResponse(description="Login Required"),
+        404: OpenApiResponse(description="Tasks Not Found")
+    }
+)
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_all_model_architecture(request):
+    try:
+        architectures = BasicDataModel.objects.values_list('architecture', flat=True).distinct().order_by('architecture')
+        if not architectures:
+            return Response({"error": "No architectures found."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"architectures": architectures}, status=status.HTTP_200_OK)
+    
+    except BasicDataModel.DoesNotExist:
+        return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
+
+@extend_schema(
     summary="Create a full model using json",
     description="Create a model with all the relavant informations like evaluations, optimizations, tasks,...",
     responses={
@@ -115,8 +138,9 @@ def create_model(request):
     
     required_fields_evaluation = ["resources_name", "resources_cpu", "resources_cpu_frequency", "resources_gpu", "resources_gpu_memory",
                                   "resources_computer_memory", "resources_max_watt", "resources_description", "accuracies", 
-                                  "final_losses", "latencies_ms", "executions_time_ms", "energies_consumption_mwh",
-                                  "emissions_gco2eqs","avg_emissions_per_inference","avg_energy_per_inference", "fps_gpus","fps_cpus","std_gpus","std_cpus","num_macs", "map_50s", "map_50_95s", "dates"]
+                                  "final_losses", "latencies_ms", "executions_time_ms", "total_energy_consumption_mwh",
+                                  "total_emissions_gco2eq","avg_emissions_per_inference","avg_energy_per_inference", 
+                                  "fps_gpus","fps_cpus","std_gpus","std_cpus","num_macs", "map_50s", "map_50_95s", "dates"]
     
     model_data = checks_and_get_required_fields(data = request.data, required_fields = required_model_fields)
     
@@ -151,7 +175,7 @@ def create_model(request):
         
         required_fields_quantization = ["quantizations_type", "quantizations_precision_name", "quantizations_model_size_reduction", "quantizations_memory_reduction","quantizations_description"]
         required_fields_pruning = ["prunings_strategy","prunings_scope","prunings_compression_ratio", "prunings_memory_reduction", "prunings_rate", "prunings_description"]
-        required_fields_knwoledge = ["knowledges_softmax","knowledges_loss_function", "knowledges_descritpion", "knowledges_teacher"]
+        required_fields_knwoledge = ["knowledges_softmax","knowledges_loss_function", "knowledges_description", "knowledges_teacher"]
         
         optimization_quantization_instance = []
         optimization_pruning_instance = []
@@ -167,31 +191,31 @@ def create_model(request):
         types = optimization_data["types"]
         
         if "Quantization" in types:
-            quant_fields = checks_and_get_required_fields(data=request.data["optimizations"], required_fields=required_fields_quantization)
+            quant_fields = checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_quantization)
             if isinstance(quant_fields, Response):
                 return quant_fields
             optimization_data.update(quant_fields)
 
         if "Pruning" in types:
-            pruning_fields = checks_and_get_required_fields(data=request.data["optimizations"], required_fields=required_fields_pruning)
+            pruning_fields = checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_pruning)
             if isinstance(pruning_fields, Response):
                 return pruning_fields
             optimization_data.update(pruning_fields)
 
         if "Knowledge Distillation" in types:
-            knowledge_fields = checks_and_get_required_fields(data=request.data["optimizations"], required_fields=required_fields_knwoledge)
+            knowledge_fields = checks_and_get_required_fields(data = request.data["optimizations"], required_fields = required_fields_knwoledge)
             if isinstance(knowledge_fields, Response):
                 return knowledge_fields
             optimization_data.update(knowledge_fields)
 
-        for index, optimization_type in enumerate(optimization_data["types"]):
-            if "Quantization" in optimization_data["types"]:
+        for index, type in enumerate(optimization_data["types"]):
+            if "Quantization" in type:
                 optimization_quantization_instance.append(optimizations_instance[index])
                 
-            elif "Pruning" in optimization_data["types"]:
+            elif "Pruning" in type:
                 optimization_pruning_instance.append(optimizations_instance[index])
                 
-            elif "Knowledge Distillation" in optimization_data["types"]:
+            elif "Knowledge Distillation" in type:
                 optimization_knowledge_instance.append(optimizations_instance[index])
                 
         if (optimization_quantization_instance != []):
@@ -240,7 +264,7 @@ def update_model(request):
 def delete_model(request, pk):
     try:
         model = Model.objects.get(model_id = pk)
-        if model.user_fk.pk != request.user.pk:
+        if model.user_fk.pk != request.user.pk and not request.user.is_superuser:
             return Response({"message": "You are not the owner of the model"}, status = status.HTTP_406_NOT_ACCEPTABLE)
         model.delete()
         return Response({"message": "Model Deleted Sucessfully"}, status = status.HTTP_200_OK)
@@ -307,8 +331,8 @@ def create_evaluation_instance(data, model_instance, resources_instance):
             final_loss = data["final_losses"][index],
             latency_ms = data["latencies_ms"][index],
             execution_time_ms = data["executions_time_ms"][index],
-            energy_consumption_mwh = data["energies_consumption_mwh"][index],
-            emissions_gco2eq = data["emissions_gco2eqs"][index],
+            energy_consumption_mwh = data["total_energy_consumption_mwh"][index],
+            emissions_gco2eq = data["total_emissions_gco2eq"][index],
             average_emissions_per_inference = data["avg_emissions_per_inference"][index],
             average_energy_per_inference = data["avg_energy_per_inference"][index],
             fps_gpu = data["fps_gpus"][index],
@@ -393,9 +417,9 @@ def create_knowledge_distillation_instance(data, optimizations_instance, model_i
         knowledge = KnowledgeDistillation(
             softmax_temperature = data["knowledges_softmax"][index],
             loss_function = data["knowledges_loss_function"][index],
-            knowledge_distillation_description = data["knowledges_descritpion"][index],
+            knowledge_distillation_description = data["knowledges_description"][index],
             student = model_instance,
-            teacher = Model.objects.get(model_id = data["knowledges_teacher"][index]),
+            teacher = Model.objects.get(model_name = data["knowledges_teacher"][index]),
             optimization_fk = optimizations_instance[index]
         )
         

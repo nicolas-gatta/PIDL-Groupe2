@@ -10,7 +10,7 @@ CREATE DATABASE `pidl`;
 -- =====================================================
 CREATE TABLE `pidl`.`resource`(
    `resource_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `resource_name` VARCHAR(50) UNIQUE,
+   `resource_name` VARCHAR(50),
    `cpu_type` VARCHAR(50),
    `memory_gb` INT,
    `gpu_type` VARCHAR(50),
@@ -37,7 +37,8 @@ CREATE TABLE `pidl`.`role`(
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50) UNIQUE,
-   `task_description` VARCHAR(100)
+   `task_description` VARCHAR(100),
+   `task_color` VARCHAR(50)
 )DEFAULT CHARSET = utf8mb4;
 
 -- =====================================================
@@ -249,7 +250,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_task` AS
     SELECT
         `task_id` AS `id`,
         `task_name` AS `name`,
-        `task_description` AS `description`
+        `task_description` AS `description`,
+        `task_color` AS `color`
     FROM `pidl`.`task`;
 
 -- =====================================================
@@ -537,13 +539,14 @@ VALUES
 -- =====================================================
 -- Insert Data: task
 -- =====================================================
-INSERT INTO `pidl`.`task` (`task_id`, `task_name` ,`task_description`) 
+INSERT INTO `pidl`.`task` (`task_id`, `task_name`, `task_description`, `task_color`) 
 VALUES 
-(1, 'Image Classification', 'Assign labels to images'),
-(2, 'Object Detection', 'Detect and localize objects'),
-(3, 'Text Generation', 'Generate human-like text'),
-(4, 'Image Segmentation', 'Divide an input into meaningful parts, such as outlining objects pixel by pixel'),
-(5, 'Text Classification', 'Assign labels to text');
+(1, 'Image Classification', 'Assign labels to images', '#FF5733'),
+(2, 'Object Detection', 'Detect and localize objects', '#33A1FF'),
+(3, 'Text Generation', 'Generate human-like text', '#9B59B6'),
+(4, 'Image Segmentation', 'Divide an input into meaningful parts, such as outlining objects pixel by pixel', '#2ECC71'),
+(5, 'Text Classification', 'Assign labels to text', '#F39C12');
+
 
 -- =====================================================
 -- Insert Data: optimization

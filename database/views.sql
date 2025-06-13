@@ -41,7 +41,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_task` AS
     SELECT
         `task_id` AS `id`,
         `task_name` AS `name`,
-        `task_description` AS `description`
+        `task_description` AS `description`,
+        `task_color` AS `color`
     FROM `pidl`.`task`;
 
 -- =====================================================
