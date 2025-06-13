@@ -41,7 +41,8 @@ CREATE OR REPLACE VIEW `pidl`.`v_task` AS
     SELECT
         `task_id` AS `id`,
         `task_name` AS `name`,
-        `task_description` AS `description`
+        `task_description` AS `description`,
+        `task_color` AS `color`
     FROM `pidl`.`task`;
 
 -- =====================================================
@@ -114,15 +115,15 @@ CREATE OR REPLACE VIEW `pidl`.`v_evaluation` AS
         `final_loss` AS `final_loss`,
         `latency_ms` AS `latency_ms`,
         `execution_time_ms` AS `execution_time_ms`,
-        `energy_consumption_mwh` AS `energy_consumption_mwh`,
-        `emissions_gco2eq` AS `emissions_gco2eq`,
+        `energy_consumption_mwh` AS `total_energy_consumption_mwh`,
+        `emissions_gco2eq` AS `total_emissions_gco2eq`,
         `average_emissions_per_inference` AS `avg_emissions_per_inference`,
         `average_energy_per_inference` AS `avg_energy_per_inference`,
         `fps_gpu` AS `fps_gpu`,
         `fps_cpu` AS `fps_cpu`,
         `std_cpu` AS `std_cpu`,
         `std_gpu` AS `std_gpu`,
-        `num_macs` AS `macs`,
+        `num_macs` AS `num_macs`,
         `map_50` AS `map_50`,
         `map_50_95` AS `map_50_95`,
         `evaluation_date` AS `date`,
@@ -270,8 +271,14 @@ CREATE OR REPLACE VIEW `pidl`.`v_simplify_data_model` AS
         vm.`user_id` AS `user_id`, 
         vm.`creator` AS `creator`,
         ve.`fps_gpu` AS `fps_gpu`,
-        ve.`emissions_gco2eq` AS `avg_emissions_gco2eq`,
-        ve.`energy_consumption_mwh` AS `avg_energy_mwh`,
+        ve.`fps_cpu` AS `fps_cpu`,
+        ve.`std_cpu` AS `std_cpu`,
+        ve.`std_gpu` AS `std_gpu`,
+        ve.`num_macs` AS `num_macs`,
+        ve.`total_energy_consumption_mwh` AS `total_energy_consumption_mwh`,
+        ve.`total_emissions_gco2eq` AS `total_emissions_gco2eq`,
+        ve.`avg_emissions_per_inference` AS `avg_emissions_per_inference`,
+        ve.`avg_energy_per_inference` AS `avg_energy_per_inference`,
         ve.`map_50` AS `map_50`,
         ve.`map_50_95` AS `map_50_95`
 

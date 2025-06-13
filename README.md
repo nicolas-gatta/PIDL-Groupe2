@@ -46,7 +46,7 @@ pip install -r requirements.txt
 
 #### 5. Install requirements frontend
 ```bash
-cd frontend
+cd frontend/myapp
 npm install
 ```
 
@@ -69,11 +69,11 @@ python manage.py runserver
 In another terminal:
 
 ```bash
-cd frontend
+cd frontend/myapp
 npm run web
 ```
 - It will start Django Server at [http://localhost:8000](http://localhost:8000)
-- It will start React Server at [http://localhost:8081](http://localhost:8081)
+- It will start React Server at [http://localhost:3000](http://localhost:3000)
 
 > 💡 You can stop both by pressing `Ctrl + C`.
 

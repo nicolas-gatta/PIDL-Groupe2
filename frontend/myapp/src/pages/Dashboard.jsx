@@ -12,6 +12,8 @@ const Dashboard = () => {
   const [data, setData] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [allTasks, setAllTasks] = useState([]);
+  const [allArchitectures, setallArchitectures] = useState([]);
 
   // Filtres simples
   const [selectedTask, setSelectedTask] = useState('');
@@ -96,7 +98,7 @@ const Dashboard = () => {
     if (asStudent) queryParams.append('as_student', 'true');
     if (hasOptimization) queryParams.append('has_optimization', 'true');
 
-    const url = `http://127.0.0.1:8000/models/get_filtered_simplify_data_models/?${queryParams.toString()}`;
+    const url = `http://127.0.0.1:8000/models/get_simplify_data_models/?${queryParams.toString()}`;
 
     try {
       const response = await fetch(url, {
@@ -125,9 +127,58 @@ const Dashboard = () => {
     fetchFilteredData();
   }, [fetchFilteredData]);
 
+  const fetchAllTasks = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('http://127.0.0.1:8000/models/get_all_tasks/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch tasks');
+
+      const result = await response.json();
+      setAllTasks(result.tasks || []);  // Adjust based on actual API response shape
+    } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllTasks();
+  }, [fetchAllTasks]);
+
+
+  const fetchAllArchitectures = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('http://127.0.0.1:8000/models/get_all_architecture/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch architectures');
+
+      const result = await response.json();
+      setallArchitectures(result.architectures || []);  // Adjust based on actual API response shape
+    } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllArchitectures();
+  }, [fetchAllArchitectures]);
+  
+
+
   // → Options dynamiques pour les filtres dropdown
-  const allTasks = Array.from(new Set(data.flatMap(m => m.tasks?.map(t => t.name) || [])));
-  const allArchitectures = Array.from(new Set(data.map(m => m.architecture)));
   const allIDs = Array.from(new Set(data.map(m => m.id)));
 
   // → Filtrage par recherche simple sur le nom
@@ -140,6 +191,7 @@ const Dashboard = () => {
     { key: 'id', label: 'ID du Modèle' },
     { key: 'name', label: 'Nom du Modèle' },
     { key: 'architecture', label: 'Architecture' },
+    { key: 'tasks', label: 'Tasks' },
     { key: 'creator', label: 'Créateur' },
     { key: 'model_size_label', label: 'Taille' },
     { key: 'precision', label: 'Format' },
@@ -156,8 +208,8 @@ const Dashboard = () => {
     { key: 'num_macs', label: 'NUM MACS' },
     { key: 'average_emissions_per_inference', label: 'Émissions moyennes / inférence (gCO₂eq)' },
     { key: 'average_energy_per_inference', label: 'Énergie moyenne / inférence (mWh)' },
-    { key: 'avg_emissions_gco2eq', label: 'CO₂ (g)' },
-    { key: 'avg_energy_mwh', label: 'Énergie (mWh)' },
+    { key: 'total_emissions_gco2eq', label: 'CO₂ (g)' },
+    { key: 'total_energy_mwh', label: 'Énergie (mWh)' },
     { key: 'map_50', label: 'mAP@50' },
     { key: 'map_50_95', label: 'mAP@50:95' },
   ];
@@ -169,7 +221,7 @@ const Dashboard = () => {
   };
 
   // → Composant pour un filtre dropdown
-  const renderFilterGroup = (label, options, selectedValue, onChange) => (
+  const renderFilterGroup = (label, options, selectedValue, colors, onChange) => (
     <div className="filter-group">
       <label className="filter-label">{label}</label>
       <select
@@ -179,7 +231,16 @@ const Dashboard = () => {
       >
         <option value=''>Tous</option>
         {options.map((opt, i) => (
-          <option key={i} value={opt}>{opt}</option>
+          <option key={i} value={opt}
+          style={{
+              backgroundColor: colors !== null ? colors[i]: 'none',
+              color: colors !== null ? '#fff': '#000',
+              padding: '1rem',
+              margin:'1rem',
+              border: selectedValue === opt ? '2px solid #000' : 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}>{opt}</option>
         ))}
       </select>
     </div>
@@ -223,8 +284,8 @@ const Dashboard = () => {
 
             <button className="logout-button" onClick={handleLogout}>Déconnexion</button>
 
-            {renderFilterGroup('Tâche', allTasks, selectedTask, setSelectedTask)}
-            {renderFilterGroup('Type de Modèle', allArchitectures, selectedType, setSelectedType)}
+            {renderFilterGroup('Tâche', allTasks.map(t => t.name), selectedTask, allTasks.map(t => t.color), setSelectedTask)}
+            {renderFilterGroup('Type de Modèle', allArchitectures, selectedType, null, setSelectedType)}
 
             <div className="filter-group">
               <label className="filter-label" htmlFor="creator-filter">Créateur</label>
@@ -299,6 +360,29 @@ const Dashboard = () => {
                               >
                                 {model.name}
                               </button>
+                            </td>
+                          );
+                        }
+                        if (h.key === "tasks") {
+                          return (
+                            <td key={h.key}>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                {model.tasks.map((task, i) => (
+                                  <div
+                                    key={i}
+                                    style={{
+                                      backgroundColor: task.color,
+                                      color: '#fff',
+                                      padding: '0.5rem 1rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 'bold'
+                                    }}
+                                  >
+                                    {task.name}
+                                  </div>
+                                ))}
+                              </div>
                             </td>
                           );
                         }

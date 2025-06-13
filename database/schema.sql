@@ -5,12 +5,12 @@
 -- =====================================================
 CREATE TABLE `pidl`.`resource`(
    `resource_id` INT PRIMARY KEY AUTO_INCREMENT,
-   `resource_name` VARCHAR(50) UNIQUE,
+   `resource_name` VARCHAR(50),
    `cpu_type` VARCHAR(50),
    `memory_gb` INT,
    `gpu_type` VARCHAR(50),
    `memory_gpu` INT,
-   `cpu_frequency_ghz` DECIMAL(10, 2),
+   `cpu_frequency_ghz` FLOAT,
    `max_power_watts` INT,
    `resource_description` VARCHAR(100)
 )DEFAULT CHARSET = utf8mb4;
@@ -32,7 +32,8 @@ CREATE TABLE `pidl`.`role`(
 CREATE TABLE `pidl`.`task`(
    `task_id` INT PRIMARY KEY AUTO_INCREMENT,
    `task_name` VARCHAR(50) UNIQUE,
-   `task_description` VARCHAR(100)
+   `task_description` VARCHAR(100),
+   `task_color` VARCHAR(50)
 )DEFAULT CHARSET = utf8mb4;
 
 -- =====================================================

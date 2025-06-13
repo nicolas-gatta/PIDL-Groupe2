@@ -11,7 +11,7 @@ export default function ModelDetailModal({ model: initialModel, onClose }) {
   useEffect(() => {
     // Dès que le composant monte, on récupère le détail par son ID.
     const token = localStorage.getItem('token');
-    const url = `http://127.0.0.1:8000/models/get_filtered_full_data_models/?id=${initialModel.id}`;
+    const url = `http://127.0.0.1:8000/models/get_full_data_models/?id=${initialModel.id}`;
 
     setLoading(true);
     fetch(url, {

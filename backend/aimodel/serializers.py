@@ -14,8 +14,8 @@ class ModelSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskView
-        fields = ['id', 'name', 'description']
-        
+        fields = ['id', 'name', 'description', 'color']
+
 class PrecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrecisionView
@@ -25,8 +25,9 @@ class EvaluationSerializer(serializers.ModelSerializer):
     date = serializers.DateTimeField(format="%d/%m/%Y %H:%M:%S")
     class Meta:
         model = EvaluationView
-        fields = ['id', 'accuracy', 'final_loss', 'latency_ms', 'execution_time_ms', 'energy_consumption_mwh',
-                  'emissions_gco2eq','average_emissions_per_inference', 'average_energy_per_inference','fps_gpu','fps_cpu', 'std_cpu', 'std_gpu', 'num_macs', 'map_50', 'map_50_95', 'date', 
+        fields = ['id', 'accuracy', 'final_loss', 'latency_ms', 'execution_time_ms', 'total_energy_consumption_mwh',
+                  'total_emissions_gco2eq','avg_emissions_per_inference', 'avg_energy_per_inference',
+                  'fps_gpu','fps_cpu', 'std_cpu', 'std_gpu', 'num_macs', 'map_50', 'map_50_95', 'date', 
                   'cpu', 'gpu', 'gpu_memory', 'computer_ram', 'cpu_frenquency', 'max_watts']
         
 class QuantizationSerializer(serializers.ModelSerializer):
@@ -78,8 +79,9 @@ class BasicDataModelSerializer(serializers.ModelSerializer):
         model = BasicDataModel
         fields = ['id', 'name', 'architecture', 'parameters_m', 'layers',  
                   'model_size_label', 'flops_b', 'model_size', 'training_time', 'creation_date',  
-                  'precision', 'creator', 'fps_gpu','fps_cpu','std_gpu','std_cpu','num_macs', 'average_emissions_per_inference', 'average_energy_per_inference','avg_emissions_gco2eq', 'avg_energy_mwh', 
-                  'map_50', 'map_50_95', 'tasks']
+                  'precision', 'creator', 'fps_gpu','fps_cpu','std_gpu','std_cpu','num_macs', 
+                  'avg_emissions_per_inference', 'avg_energy_per_inference',
+                  'total_emissions_gco2eq', 'total_energy_consumption_mwh', 'map_50', 'map_50_95', 'tasks']
         
     @extend_schema_field(TaskSerializer(many = True))
     def get_tasks(self, obj):
