@@ -3,17 +3,54 @@ import { useNavigate } from 'react-router-dom';
 import './AddModelPage.css';
 
 export default function AddModelPage() {
-    const [jsonInput, setJsonInput] = useState('');
+    const exampleJson = {
+          "model_name": "Vision Transformer 1",
+          "architecture": "Transformer",
+          "parameter_count": 300000000,
+          "layer_count": 24,
+          "model_size_label": "l",
+          "flops_billion": 55.4,
+          "model_size": 1200,
+          "model_description": "A transformer model optimized for large-scale image classification and object detection.",
+          "precision_name": "fp32",
+          "tasks": ["Object Detection", "Image Classification"],
+          "evaluations": {
+            "resources_name": ["NVIDIA A100", "NVIDIA V100"],
+            "resources_cpu": ["Intel Xeon 2.4GHz", "AMD EPYC 3.0GHz"],
+            "resources_cpu_frequency": [2.4, 3.0],
+            "resources_gpu": ["A100", "V100"],
+            "resources_gpu_memory": [40, 32],
+            "resources_computer_memory": [128, 64],
+            "resources_max_watt": [300, 250],
+            "resources_description": [
+              "High-performance GPU for AI workloads",
+              "Optimized for deep learning applications"
+            ],
+            "accuracies": [0.89, 0.87],
+            "final_losses": [0.12, 0.15],
+            "latencies_ms": [30, 35],
+            "executions_time_ms": [2000, 2500],
+            "total_energy_consumption_mwh": [150, 170],
+            "total_emissions_gco2eq": [20, 25],
+            "avg_emissions_per_inference": [0.1, 0.2],
+            "avg_energy_per_inference": [0.015,0.025],
+            "fps_gpus": [60, 50],
+            "fps_cpus": [30, 40],
+            "std_gpus": [5, 10],
+            "std_cpus": [2, 4],
+            "num_macs": [218292101.44, 258546980.20],
+            "map_50s": [0.75, 0.70],
+            "map_50_95s": [0.65, 0.60],
+            "dates": ["2024-05-10", "2024-05-15"]
+          }
+    };
+
+    // Initialise jsonInput avec la chaîne JSON formatée de exampleJson
+    const [jsonInput, setJsonInput] = useState(JSON.stringify(exampleJson, null, 2));
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const fileInputRef = useRef(null);
     const navigate = useNavigate();
-
-    const exampleJson = {
-        model: "Exemple",
-        version: 1,
-        data: []
-    };
 
     const handleDownload = () => {
         const blob = new Blob([JSON.stringify(exampleJson, null, 2)], { type: 'application/json' });
@@ -56,7 +93,7 @@ export default function AddModelPage() {
             handleFile(e.target.files[0]);
         }
     };
-    
+
     const handleSubmit = async () => {
         setError('');
         setSuccess('');
@@ -76,7 +113,7 @@ export default function AddModelPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${token}` 
+                    'Authorization': `Token ${token}`
                 },
                 body: JSON.stringify(parsedJson)
             });
@@ -93,7 +130,6 @@ export default function AddModelPage() {
             setError("Erreur réseau. Vérifiez que le serveur est actif.");
         }
     };
-
 
     const handleBack = () => {
         navigate('/dashboard');
@@ -137,7 +173,8 @@ export default function AddModelPage() {
                 />
 
                 <textarea
-                    className="json-textarea"
+                    className={`json-textarea ${jsonInput === JSON.stringify(exampleJson, null, 2) ? 'example' : 'not-example'
+                        }`}
                     placeholder="Ou collez votre JSON ici..."
                     value={jsonInput}
                     onChange={(e) => setJsonInput(e.target.value)}
@@ -153,6 +190,7 @@ export default function AddModelPage() {
         </div>
     );
 }
+
 
 /*
 ############## ajout model pruning:

@@ -148,3 +148,25 @@
         height: 250px;
     }
 }
+
+.json-textarea {
+    width: 100%;
+    height: 300px;
+    font-family: monospace;
+    font-size: 14px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    transition: color 0.3s ease;
+}
+
+    /* Texte en gris clair quand c'est l'exemple JSON */
+    .json-textarea.example {
+        color: #999;
+    }
+
+    /* Texte noir quand modifié */
+    .json-textarea.not-example {
+        color: black;
+    }
