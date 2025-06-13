@@ -7,6 +7,7 @@ from .models_views import BasicDataModel, FullDataModel, TaskView, PrecisionView
 from .serializers import BasicDataModelSerializer, FullDataModelSerializer, TaskSerializer, PrecisionSerializer
 from rest_framework import status, generics
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from .filters import BasicDataFilter
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from utils.checks import group_and_super_user_checks, checks_and_get_required_fields, get_present_fields
@@ -25,12 +26,13 @@ logger = logging.getLogger(__name__)
 class FilteredModelListView(generics.ListAPIView):
     queryset = BasicDataModel.objects.all()
     serializer_class = BasicDataModelSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = BasicDataFilter
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPageNumberPagination
-    
+    ordering_fields = ['id', 'creation_date', 'model_size']
+    ordering = ['-creation_date'] 
     
     def list(self, data):
         response = super().list({data})
@@ -92,54 +94,6 @@ def get_all_tasks(request):
         return Response({"tasks": serializer.data}, status = status.HTTP_200_OK)
     except TaskView.DoesNotExist:
         return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
- 
-
-@extend_schema(
-    summary="List of basic models",
-    description="Returns all models available in the simplified view.",
-    responses={
-        200: BasicDataModelSerializer(many=True),
-        403: OpenApiResponse(description="Login Required"),
-        404: OpenApiResponse(description="Models Not Found")
-    }
-)
-@api_view(['GET'])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def get_all_simplify_data_models(request):
-    try:
-        models = BasicDataModel.objects.all()
-        
-        paginator = CustomPageNumberPagination()
-        
-        result_page = paginator.paginate_queryset(models, request)
-        
-        serializer = BasicDataModelSerializer(result_page, many=True)
-        
-        return Response({"models": paginator.get_paginated_response(serializer.data).data}, status = status.HTTP_200_OK)
-    except BasicDataModel.DoesNotExist:
-        return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND) 
-
-
-@extend_schema(
-    summary="List of full models",
-    description="Returns all AI models with full details (full view).",
-    responses={
-        200: FullDataModelSerializer(many=True),
-        403: OpenApiResponse(description="Login Required"),
-        404: OpenApiResponse(description="Models Not Found")
-    }
-)
-@api_view(['GET'])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def get_all_full_data_models(request):
-    try:
-        models = FullDataModel.objects.all()
-        serializer = FullDataModelSerializer(models, many=True)
-        return Response({"models": serializer.data}, status=status.HTTP_200_OK)
-    except FullDataModel.DoesNotExist:
-        return Response({"error": "No available data"}, status=status.HTTP_404_NOT_FOUND)
 
 @extend_schema(
     summary="Create a full model using json",

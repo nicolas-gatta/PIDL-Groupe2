@@ -40,11 +40,7 @@ class BasicDataFilter(StrictFilterSet):
         
         task_names = [v.strip() for v in value.split(',') if v.strip()]
         
-        print(task_names)
-        
         task_ids = Task.objects.filter(task_name__in=task_names).values_list('task_id', flat=True)
-        
-        print(task_ids)
         
         model_ids = ModelTask.objects.filter(task_fk_id__in=task_ids).values_list('model_fk_id', flat=True)
 
