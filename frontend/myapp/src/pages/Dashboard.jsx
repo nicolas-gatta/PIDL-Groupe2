@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [allTasks, setAllTasks] = useState([]);
   const [allArchitectures, setallArchitectures] = useState([]);
+  const [sortConfig, setSortConfig] = useState([]);
+
 
   // Filtres simples
   const [selectedTask, setSelectedTask] = useState('');
@@ -64,6 +66,39 @@ const Dashboard = () => {
     }
   }, []);
 
+  const handleSort = (key) => {
+    setSortConfig(prev => {
+      const existingIndex = prev.findIndex(s => s.key === key);
+      if (existingIndex === -1) {
+        return [...prev, { key, direction: 'asc' }];
+      }
+      const existing = prev[existingIndex];
+      let newDirection;
+      if (existing.direction === 'asc') newDirection = 'desc';
+      else if (existing.direction === 'desc') {
+        return prev.filter(s => s.key !== key);
+      }
+      else newDirection = 'asc';
+
+      const newSortConfig = [...prev];
+      newSortConfig[existingIndex] = { key, direction: newDirection };
+      console.log(newSortConfig);
+      return newSortConfig;
+    });
+  };
+
+  useEffect(() => {
+    fetchFilteredData();
+  }, [sortConfig]);
+
+  const getArrow = (key) => {
+    const sortItem = sortConfig.find(s => s.key === key);
+    if (!sortItem ||sortItem.key !== key) return "▲▼";
+    if (sortItem.direction === 'asc') return '▲';
+    if (sortItem.direction === 'desc') return '▼';
+    return null;
+  };
+
   // → Fetch des données filtrées (avec pagination)
   const fetchFilteredData = useCallback(async () => {
     setLoading(true);
@@ -98,6 +133,13 @@ const Dashboard = () => {
     if (asStudent) queryParams.append('as_student', 'true');
     if (hasOptimization) queryParams.append('has_optimization', 'true');
 
+    console.log(sortConfig);
+
+    if (sortConfig && sortConfig.length > 0) {
+      const orderingValue = sortConfig.map(({ key, direction }) => (direction === 'desc' ? `-${key}` : key)).join(',');
+      queryParams.append('ordering', orderingValue);
+    }
+
     const url = `http://127.0.0.1:8000/models/get_simplify_data_models/?${queryParams.toString()}`;
 
     try {
@@ -109,6 +151,7 @@ const Dashboard = () => {
         }
       });
       if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
+      
       const result = await response.json();
       setData(result.models.results || []);
       setTotalPages(Math.ceil(result.models.count / pageSize));
@@ -333,7 +376,16 @@ const Dashboard = () => {
             <table>
               <thead>
                 <tr>
-                  {tableHeaders.map(h => <th key={h.key}>{h.label}</th>)}
+                  {tableHeaders.map(h => (                
+                    <th key={h.key} onClick={() =>{
+                      if (h.key === "id" || h.key === "model_size" || h.key === "creation_date"){
+                        handleSort(h.key);
+                      }
+                    }}>
+                    {h.label} {(h.key === "id" || h.key === "model_size" || h.key === "creation_date") ? <span>{getArrow(h.key)}</span> : null}
+                    </th>
+                  ))}
+
                 </tr>
               </thead>
               <tbody>
