@@ -109,7 +109,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.environment.set(\"access_token\", \"Token \" + pm.response.json().token);\r",
+									"pm.environment.set(\"access_token_admin\", \"Token \" + pm.response.json().token);\r",
 									"\r",
 									"\r",
 									"pm.test(\"Response status code is 200\", function () {\r",
@@ -193,124 +193,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Logout",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response has the required fields - message, token, and user\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"\r",
-									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.message).to.exist;\r",
-									"    pm.expect(responseData.token).to.exist;\r",
-									"    pm.expect(responseData.user).to.exist;\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Token is an empty string\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData.token).to.be.a('string').and.to.have.lengthOf.at.least(0, \"Token Should be Empty\");\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"User object is empty\", function () {\r",
-									"  const responseData = pm.response.json();\r",
-									"  \r",
-									"    pm.expect(responseData.user).to.be.a('object');\r",
-									"    pm.expect(Object.keys(responseData.user).length).to.be.at.least(0, \"User Should be Empty\")\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{access_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}auth/logout/",
-							"host": [
-								"{{base_url}}auth"
-							],
-							"path": [
-								"logout",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Register",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{access_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "email",
-									"value": "nicolas@example.com",
-									"type": "text"
-								},
-								{
-									"key": "password",
-									"value": "1234",
-									"type": "text"
-								},
-								{
-									"key": "first_name",
-									"value": "Nicolas",
-									"type": "text"
-								},
-								{
-									"key": "last_name",
-									"value": "Gatta",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}auth/register/",
-							"host": [
-								"{{base_url}}auth"
-							],
-							"path": [
-								"register",
-								""
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -336,9 +218,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -349,8 +236,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -362,16 +255,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -391,13 +274,733 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_all_simplify_data_models/",
+									"raw": "{{base_url}}models/get_simplify_data_models/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_all_simplify_data_models",
+										"get_simplify_data_models",
 										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Ordering By ID (Ascending)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=id",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "id"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Ordering By ID (Descending)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=-id",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "-id"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Ordering By Creation Date (Ascending)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=creation_date",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "creation_date"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Ordering By Creation Date (Descending)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=-creation_date",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "-creation_date"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Ordering By Model Size (Ascending)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=model_size",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "model_size"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Ordering By Model Size (Descending)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=-model_size",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "-model_size"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Multiple Ordering",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?ordering=-model_size,-creation_date",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "ordering",
+											"value": "-model_size,-creation_date"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Simplify Data Models Page 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?page=2",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
 									]
 								}
 							},
@@ -419,9 +1022,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -432,8 +1040,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -445,16 +1059,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -474,12 +1078,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?id=1",
+									"raw": "{{base_url}}models/get_simplify_data_models/?id=1",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -508,9 +1112,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -521,8 +1130,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -534,16 +1149,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -563,12 +1168,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?user_id=1",
+									"raw": "{{base_url}}models/get_simplify_data_models/?user_id=1",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -597,9 +1202,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -610,8 +1220,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -623,16 +1239,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -652,12 +1258,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models?task=Image Classification,Object Detection",
+									"raw": "{{base_url}}models/get_simplify_data_models/?task=Image Classification,Object Detection",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models"
+										"get_simplify_data_models",
+										""
 									],
 									"query": [
 										{
@@ -685,9 +1292,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -698,8 +1310,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -711,16 +1329,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -740,12 +1348,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?architecture=CNN",
+									"raw": "{{base_url}}models/get_simplify_data_models/?architecture=CNN",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -774,9 +1382,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -787,8 +1400,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -800,16 +1419,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -829,12 +1438,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?emissions_min=0.01340&emissions_max=0.01670",
+									"raw": "{{base_url}}models/get_simplify_data_models/?emissions_min=0.01340&emissions_max=0.01670",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -867,9 +1476,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -880,8 +1494,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -893,16 +1513,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -922,18 +1532,18 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?energy_min=0.15&energy_max=0.19",
+									"raw": "{{base_url}}models/get_simplify_data_models/?energy_min=0.001&energy_max=0.19",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
 										{
 											"key": "energy_min",
-											"value": "0.15"
+											"value": "0.001"
 										},
 										{
 											"key": "energy_max",
@@ -960,9 +1570,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -973,8 +1588,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -986,16 +1607,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -1015,12 +1626,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?creator=Alice",
+									"raw": "{{base_url}}models/get_simplify_data_models/?creator=Alice",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -1049,9 +1660,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -1062,8 +1678,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -1075,16 +1697,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -1104,12 +1716,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?max_training_time=6000",
+									"raw": "{{base_url}}models/get_simplify_data_models/?max_training_time=6000",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -1138,9 +1750,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -1151,8 +1768,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -1164,16 +1787,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -1193,12 +1806,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?model_size_label=n",
+									"raw": "{{base_url}}models/get_simplify_data_models/?model_size_label=n",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -1227,9 +1840,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -1240,8 +1858,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -1253,16 +1877,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -1282,12 +1896,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?model_size_min=80&model_size_max=100",
+									"raw": "{{base_url}}models/get_simplify_data_models/?model_size_min=80&model_size_max=100",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -1320,9 +1934,14 @@
 											"    const responseData = pm.response.json();\r",
 											"\r",
 											"    pm.expect(responseData).to.be.an('object');\r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
 											"\r",
-											"    responseData.models.forEach(function(model) {\r",
+											"    responseData.models.results.forEach(function(model) {\r",
 											"        pm.expect(model).to.have.property('id');\r",
 											"        pm.expect(model).to.have.property('name');\r",
 											"        pm.expect(model).to.have.property('architecture');\r",
@@ -1333,8 +1952,14 @@
 											"        pm.expect(model).to.have.property('parameters_m');\r",
 											"        pm.expect(model).to.have.property('flops_b');\r",
 											"        pm.expect(model).to.have.property('fps_gpu');\r",
-											"        pm.expect(model).to.have.property('avg_emissions_gco2eq');\r",
-											"        pm.expect(model).to.have.property('avg_energy_mwh');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
 											"        pm.expect(model).to.have.property('map_50');\r",
 											"        pm.expect(model).to.have.property('map_50_95');\r",
 											"        pm.expect(model).to.have.property('training_time');\r",
@@ -1346,16 +1971,6 @@
 											"            pm.expect(task).to.have.property('name');\r",
 											"            pm.expect(task).to.have.property('description');\r",
 											"        });\r",
-											"    });\r",
-											"});\r",
-											"\r",
-											"\r",
-											"pm.test(\"Tasks array within the response should exist and be an array\", function () {\r",
-											"    const responseData = pm.response.json();\r",
-											"    \r",
-											"    pm.expect(responseData.models).to.be.an('array');\r",
-											"    responseData.models.forEach(function(model) {\r",
-											"        pm.expect(model.tasks).to.exist.and.to.be.an('array');\r",
 											"    });\r",
 											"});\r",
 											""
@@ -1375,12 +1990,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_simplify_data_models/?task=Image Classification,Object Detection&max_training_time=6000&creator=Alice",
+									"raw": "{{base_url}}models/get_simplify_data_models/?task=Image Classification,Object Detection&max_training_time=6000&creator=Alice",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_simplify_data_models",
+										"get_simplify_data_models",
 										""
 									],
 									"query": [
@@ -1395,6 +2010,108 @@
 										{
 											"key": "creator",
 											"value": "Alice"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Simplify Data Model Multiple Filter And Ordering",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response has the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"\r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData.models.results).to.be.an('array');\r",
+											"    \r",
+											"    pm.expect(responseData.models).to.have.property('count');\r",
+											"    pm.expect(responseData.models).to.have.property('next');\r",
+											"    pm.expect(responseData.models).to.have.property('previous');\r",
+											"    pm.expect(responseData.models).to.have.property('results');\r",
+											"\r",
+											"    responseData.models.results.forEach(function(model) {\r",
+											"        pm.expect(model).to.have.property('id');\r",
+											"        pm.expect(model).to.have.property('name');\r",
+											"        pm.expect(model).to.have.property('architecture');\r",
+											"        pm.expect(model).to.have.property('model_size');\r",
+											"        pm.expect(model).to.have.property('model_size_label');\r",
+											"        pm.expect(model).to.have.property('precision');\r",
+											"        pm.expect(model).to.have.property('layers');\r",
+											"        pm.expect(model).to.have.property('parameters_m');\r",
+											"        pm.expect(model).to.have.property('flops_b');\r",
+											"        pm.expect(model).to.have.property('fps_gpu');\r",
+											"        pm.expect(model).to.have.property('fps_cpu');\r",
+											"        pm.expect(model).to.have.property('std_gpu');\r",
+											"        pm.expect(model).to.have.property('std_cpu');\r",
+											"        pm.expect(model).to.have.property('num_macs');\r",
+											"        pm.expect(model).to.have.property('avg_emissions_per_inference');\r",
+											"        pm.expect(model).to.have.property('avg_energy_per_inference');\r",
+											"        pm.expect(model).to.have.property('total_emissions_gco2eq');\r",
+											"        pm.expect(model).to.have.property('total_energy_consumption_mwh');\r",
+											"        pm.expect(model).to.have.property('map_50');\r",
+											"        pm.expect(model).to.have.property('map_50_95');\r",
+											"        pm.expect(model).to.have.property('training_time');\r",
+											"        pm.expect(model).to.have.property('creation_date');\r",
+											"        pm.expect(model).to.have.property('creator');\r",
+											"        pm.expect(model).to.have.property('tasks').to.be.an('array');\r",
+											"        model.tasks.forEach(function(task) {\r",
+											"            pm.expect(task).to.have.property('id');\r",
+											"            pm.expect(task).to.have.property('name');\r",
+											"            pm.expect(task).to.have.property('description');\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/get_simplify_data_models/?task=Image Classification,Object Detection&max_training_time=80000&creator=Alice&ordering=-model_size",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_simplify_data_models",
+										""
+									],
+									"query": [
+										{
+											"key": "task",
+											"value": "Image Classification,Object Detection"
+										},
+										{
+											"key": "max_training_time",
+											"value": "80000"
+										},
+										{
+											"key": "creator",
+											"value": "Alice"
+										},
+										{
+											"key": "ordering",
+											"value": "-model_size"
 										}
 									]
 								}
@@ -1425,12 +2142,13 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "{{base_url}}models/get_all_full_data_models",
+									"raw": "{{base_url}}models/get_full_data_models/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_all_full_data_models"
+										"get_full_data_models",
+										""
 									]
 								}
 							},
@@ -1448,12 +2166,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_filtered_full_data_models/?id=1",
+									"raw": "{{base_url}}models/get_full_data_models/?id=1",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
-										"get_filtered_full_data_models",
+										"get_full_data_models",
 										""
 									],
 									"query": [
@@ -1479,7 +2197,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"model_name\": \"Vision Transformer 1\",\r\n  \"architecture\": \"Transformer\",\r\n  \"parameter_count\": 300000000,\r\n  \"layer_count\": 24,\r\n  \"model_size_label\": \"l\",\r\n  \"flops_billion\": 55.4,\r\n  \"model_size\": 1200,\r\n  \"model_description\": \"A transformer model optimized for large-scale image classification and object detection.\",\r\n  \"precision_name\": \"fp32\",\r\n  \"tasks\": [\"Object Detection\", \"Image Classification\"],\r\n  \"evaluations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0],\r\n    \"resources_gpu\": [\"A100\", \"V100\"],\r\n    \"resources_gpu_memory\": [40, 32],\r\n    \"resources_computer_memory\": [128, 64],\r\n    \"resources_max_watt\": [300, 250],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\"\r\n    ],\r\n    \"accuracies\": [0.89, 0.87],\r\n    \"final_losses\": [0.12, 0.15],\r\n    \"latencies_ms\": [30, 35],\r\n    \"executions_time_ms\": [2000, 2500],\r\n    \"energies_consumption_mwh\": [150, 170],\r\n    \"emissions_gco2eqs\": [20, 25],\r\n    \"fps_gpus\": [60, 50],\r\n    \"map_50s\": [0.75, 0.70],\r\n    \"map_50_95s\": [0.65, 0.60],\r\n    \"dates\": [\"2024-05-10\", \"2024-05-15\"]\r\n  }\r\n}\r\n",
+									"raw": "{\r\n  \"model_name\": \"Vision Transformer 1\",\r\n  \"architecture\": \"Transformer\",\r\n  \"parameter_count\": 300000000,\r\n  \"layer_count\": 24,\r\n  \"model_size_label\": \"l\",\r\n  \"flops_billion\": 55.4,\r\n  \"model_size\": 1200,\r\n  \"model_description\": \"A transformer model optimized for large-scale image classification and object detection.\",\r\n  \"precision_name\": \"fp32\",\r\n  \"tasks\": [\"Object Detection\", \"Image Classification\"],\r\n  \"evaluations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0],\r\n    \"resources_gpu\": [\"A100\", \"V100\"],\r\n    \"resources_gpu_memory\": [40, 32],\r\n    \"resources_computer_memory\": [128, 64],\r\n    \"resources_max_watt\": [300, 250],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\"\r\n    ],\r\n    \"accuracies\": [0.89, 0.87],\r\n    \"final_losses\": [0.12, 0.15],\r\n    \"latencies_ms\": [30, 35],\r\n    \"executions_time_ms\": [2000, 2500],\r\n    \"total_energy_consumption_mwh\": [150, 170],\r\n    \"total_emissions_gco2eq\": [20, 25],\r\n    \"avg_emissions_per_inference\": [0.1, 0.2],\r\n    \"avg_energy_per_inference\": [0.015,0.025],\r\n    \"fps_gpus\": [60, 50],\r\n    \"fps_cpus\": [30, 40],\r\n    \"std_gpus\": [5, 10],\r\n    \"std_cpus\": [2, 4],\r\n    \"num_macs\": [218292101.44, 258546980.20],\r\n    \"map_50s\": [0.75, 0.70],\r\n    \"map_50_95s\": [0.65, 0.60],\r\n    \"dates\": [\"2024-05-10\", \"2024-05-15\"]\r\n  }\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1512,7 +2230,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"model_name\": \"Vision Transformer 2\",\r\n  \"architecture\": \"Transformer\",\r\n  \"parameter_count\": 300000000,\r\n  \"layer_count\": 24,\r\n  \"model_size_label\": \"l\",\r\n  \"flops_billion\": 55.4,\r\n  \"model_size\": 1200,\r\n  \"model_description\": \"A transformer model optimized for large-scale image classification and object detection.\",\r\n  \"precision_name\": \"fp32\",\r\n  \"tasks\": [\"Object Detection\", \"Image Classification\"],\r\n  \"evaluations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0],\r\n    \"resources_gpu\": [\"A100\", \"V100\"],\r\n    \"resources_gpu_memory\": [40, 32],\r\n    \"resources_computer_memory\": [128, 64],\r\n    \"resources_max_watt\": [300, 250],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\"\r\n    ],\r\n    \"accuracies\": [0.89, 0.87],\r\n    \"final_losses\": [0.12, 0.15],\r\n    \"latencies_ms\": [30, 35],\r\n    \"executions_time_ms\": [2000, 2500],\r\n    \"energies_consumption_mwh\": [150, 170],\r\n    \"emissions_gco2eqs\": [20, 25],\r\n    \"fps_gpus\": [60, 50],\r\n    \"map_50s\": [0.75, 0.70],\r\n    \"map_50_95s\": [0.65, 0.60],\r\n    \"dates\": [\"2024-05-10\", \"2024-05-15\"]\r\n  },\r\n  \"optimizations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\", \"Cloud Server Y\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\", \"ARM Cortex\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0, 1.8],\r\n    \"resources_gpu\": [\"A100\", \"V100\", \"T4\"],\r\n    \"resources_gpu_memory\": [40, 32, 16],\r\n    \"resources_computer_memory\":  [128, 64, 256],\r\n    \"resources_max_watt\": [300, 250, 100],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\",\r\n      \"Cloud-based knowledge distillation\"\r\n    ],\r\n    \"names\": [\"Quantization Optimization 1\", \"Pruning Optimization 1\", \"Knowledge Distillation Optimization 1\"],\r\n    \"dates\": [\"2024-06-10\", \"2024-06-15\", \"2024-06-20\"],\r\n    \"descriptions\": [\"First optimization phase\", \"Second optimization phase\", \"Knowledge distillation optimization\"],\r\n    \"types\": [\"Quantization\", \"Pruning\", \"Knowledge Distillation\"],\r\n\r\n    \"quantizations_type\": [\"Dynamic Quantization\"],\r\n    \"quantizations_description\": [\"Reduce memory footprint\"],\r\n    \"quantizations_precision_name\": [\"int8\"],\r\n\r\n    \"prunings_strategy\": [\"Magnitude Pruning\"],\r\n    \"prunings_rate\": [0.2],\r\n    \"prunings_description\": [\"Remove low-weight connections\"],\r\n\r\n    \"knowledges_softmax\": [\"Soft\"],\r\n    \"knowledges_loss_function\": [\"KL Divergence\"],\r\n    \"knowledges_description\": [\"Distillation with soft targets\"],\r\n    \"knowledges_teacher\": [\"Vision Transformer 1\"]\r\n  }\r\n}\r\n",
+									"raw": "{\r\n  \"model_name\": \"Vision Transformer 2\",\r\n  \"architecture\": \"Transformer\",\r\n  \"parameter_count\": 300000000,\r\n  \"layer_count\": 24,\r\n  \"model_size_label\": \"l\",\r\n  \"flops_billion\": 55.4,\r\n  \"model_size\": 1200,\r\n  \"model_description\": \"A transformer model optimized for large-scale image classification and object detection.\",\r\n  \"precision_name\": \"fp32\",\r\n  \"tasks\": [\"Object Detection\", \"Image Classification\"],\r\n  \"evaluations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0],\r\n    \"resources_gpu\": [\"A100\", \"V100\"],\r\n    \"resources_gpu_memory\": [40, 32],\r\n    \"resources_computer_memory\": [128, 64],\r\n    \"resources_max_watt\": [300, 250],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\"\r\n    ],\r\n    \"accuracies\": [0.89, 0.87],\r\n    \"final_losses\": [0.12, 0.15],\r\n    \"latencies_ms\": [30, 35],\r\n    \"executions_time_ms\": [2000, 2500],\r\n    \"total_energy_consumption_mwh\": [150, 170],\r\n    \"total_emissions_gco2eq\": [20, 25],\r\n    \"avg_emissions_per_inference\": [0.1, 0.2],\r\n    \"avg_energy_per_inference\": [0.015,0.025],\r\n    \"fps_gpus\": [60, 50],\r\n    \"fps_cpus\": [30, 40],\r\n    \"std_gpus\": [5, 10],\r\n    \"std_cpus\": [2, 4],\r\n    \"num_macs\": [218292101.44, 258546980.20],\r\n    \"map_50s\": [0.75, 0.70],\r\n    \"map_50_95s\": [0.65, 0.60],\r\n    \"dates\": [\"2024-05-10\", \"2024-05-15\"]\r\n  },\r\n  \"optimizations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\", \"Cloud Server Y\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\", \"ARM Cortex\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0, 1.8],\r\n    \"resources_gpu\": [\"A100\", \"V100\", \"T4\"],\r\n    \"resources_gpu_memory\": [40, 32, 16],\r\n    \"resources_computer_memory\":  [128, 64, 256],\r\n    \"resources_max_watt\": [300, 250, 100],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\",\r\n      \"Cloud-based knowledge distillation\"\r\n    ],\r\n    \"names\": [\"Quantization Optimization 1\", \"Pruning Optimization 1\", \"Knowledge Distillation Optimization 1\"],\r\n    \"dates\": [\"2024-06-10\", \"2024-06-15\", \"2024-06-20\"],\r\n    \"descriptions\": [\"First optimization phase\", \"Second optimization phase\", \"Knowledge distillation optimization\"],\r\n    \"types\": [\"Quantization\", \"Pruning\", \"Knowledge Distillation\"],\r\n\r\n    \"quantizations_type\": [\"Dynamic Quantization\"],\r\n    \"quantizations_description\": [\"Reduce memory footprint\"],\r\n    \"quantizations_precision_name\": [\"int8\"],\r\n    \"quantizations_model_size_reduction\": [0.80],\r\n    \"quantizations_memory_reduction\": [0.75],\r\n\r\n    \"prunings_strategy\": [\"Magnitude Pruning\"],\r\n    \"prunings_rate\": [0.2],\r\n    \"prunings_description\": [\"Remove low-weight connections\"],\r\n    \"prunings_scope\": [\"global\"],\r\n    \"prunings_compression_ratio\": [1.5], \r\n    \"prunings_memory_reduction\": [0.4],\r\n\r\n    \"knowledges_softmax\": [2.0],\r\n    \"knowledges_loss_function\": [\"KL Divergence\"],\r\n    \"knowledges_description\": [\"Distillation with soft targets\"],\r\n    \"knowledges_teacher\": [\"Vision Transformer 1\"]\r\n  }\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1547,7 +2265,7 @@
 							"response": []
 						},
 						{
-							"name": "Delete Model",
+							"name": "Delete Model own model",
 							"event": [
 								{
 									"listen": "test",
@@ -1570,13 +2288,87 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/delete_model/1/",
+									"raw": "{{base_url}}models/delete_model/18/",
 									"host": [
 										"{{base_url}}models"
 									],
 									"path": [
 										"delete_model",
-										"1",
+										"18",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Model not own model",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/delete_model/12/",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"delete_model",
+										"12",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Model as admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token_admin}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}models/delete_model/16/",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"delete_model",
+										"16",
 										""
 									]
 								}
@@ -1731,6 +2523,265 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Architecture",
+					"item": [
+						{
+							"name": "Get All Architecture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.expect(pm.response.code).to.equal(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Response contains the required fields\", function () {\r",
+											"    const responseData = pm.response.json();\r",
+											"    \r",
+											"    pm.expect(responseData).to.be.an('object');\r",
+											"    pm.expect(responseData).to.have.property('architectures').that.is.an('array');\r",
+											"    responseData.architectures.forEach(function(architecture) {\r",
+											"        pm.expect(architecture).to.be.a('string');\r",
+											"    });\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"model_name\": \"Vision Transformer 1\",\r\n  \"architecture\": \"Transformer\",\r\n  \"parameter_count\": 300000000,\r\n  \"layer_count\": 24,\r\n  \"model_size_label\": \"l\",\r\n  \"flops_billion\": 55.4,\r\n  \"model_size\": 1200,\r\n  \"model_description\": \"A transformer model optimized for large-scale image classification and object detection.\",\r\n  \"precision_name\": \"fp32\",\r\n  \"tasks\": [\"Object Detection\", \"Image Classification\"],\r\n  \"evaluations\": {\r\n    \"resources_name\": [\"NVIDIA A100\", \"NVIDIA V100\"],\r\n    \"resources_cpu\": [\"Intel Xeon 2.4GHz\", \"AMD EPYC 3.0GHz\"],\r\n    \"resources_cpu_frequency\": [2.4, 3.0],\r\n    \"resources_gpu\": [\"A100\", \"V100\"],\r\n    \"resources_gpu_memory\": [40, 32],\r\n    \"resources_computer_memory\": [128, 64],\r\n    \"resources_max_watt\": [300, 250],\r\n    \"resources_description\": [\r\n      \"High-performance GPU for AI workloads\",\r\n      \"Optimized for deep learning applications\"\r\n    ],\r\n    \"accuracies\": [0.89, 0.87],\r\n    \"final_losses\": [0.12, 0.15],\r\n    \"latencies_ms\": [30, 35],\r\n    \"executions_time_ms\": [2000, 2500],\r\n    \"total_energy_consumption_mwh\": [150, 170],\r\n    \"total_emissions_gco2eq\": [20, 25],\r\n    \"avg_emissions_per_inference\": [0.1, 0.2],\r\n    \"avg_energy_per_inference\": [0.015,0.025],\r\n    \"fps_gpus\": [60, 50],\r\n    \"fps_cpus\": [30, 40],\r\n    \"std_gpus\": [5, 10],\r\n    \"std_cpus\": [2, 4],\r\n    \"num_macs\": [218292101.44, 258546980.20],\r\n    \"map_50s\": [0.75, 0.70],\r\n    \"map_50_95s\": [0.65, 0.60],\r\n    \"dates\": [\"2024-05-10\", \"2024-05-15\"]\r\n  }\r\n}\r\n"
+								},
+								"url": {
+									"raw": "{{base_url}}models/get_all_architecture/",
+									"host": [
+										"{{base_url}}models"
+									],
+									"path": [
+										"get_all_architecture",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Logout",
+			"item": [
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - message, token, and user\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"    pm.expect(responseData.token).to.exist;\r",
+									"    pm.expect(responseData.user).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Token is an empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.token).to.be.a('string').and.to.have.lengthOf.at.least(0, \"Token Should be Empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"User object is empty\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"    pm.expect(responseData.user).to.be.a('object');\r",
+									"    pm.expect(Object.keys(responseData.user).length).to.be.at.least(0, \"User Should be Empty\")\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}auth/logout/",
+							"host": [
+								"{{base_url}}auth"
+							],
+							"path": [
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - message, token, and user\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"    pm.expect(responseData.token).to.exist;\r",
+									"    pm.expect(responseData.user).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Token is an empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.token).to.be.a('string').and.to.have.lengthOf.at.least(0, \"Token Should be Empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"User object is empty\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"    pm.expect(responseData.user).to.be.a('object');\r",
+									"    pm.expect(Object.keys(responseData.user).length).to.be.at.least(0, \"User Should be Empty\")\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{access_token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}auth/logout/",
+							"host": [
+								"{{base_url}}auth"
+							],
+							"path": [
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Register",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "nicolas@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "1234",
+									"type": "text"
+								},
+								{
+									"key": "first_name",
+									"value": "Nicolas",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "Gatta",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}auth/register/",
+							"host": [
+								"{{base_url}}auth"
+							],
+							"path": [
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
@@ -1762,7 +2813,12 @@
 		},
 		{
 			"key": "access_token",
-			"value": "Token 6eea74b3e647f184e0b1d0c5cee753e4dcffcbb4",
+			"value": "Token db97dff64075e32093324a17e7425ad75cf3890e",
+			"type": "string"
+		},
+		{
+			"key": "access_token_admin",
+			"value": "Token 29f56c2625227a999b3a6c20c43205cd878ac76b",
 			"type": "string"
 		}
 	]
