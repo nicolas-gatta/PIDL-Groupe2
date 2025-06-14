@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import Select from 'react-select';
+import chroma from 'chroma-js';
 import { useNavigate } from 'react-router-dom';
 import { FaBars, FaArrowLeft } from 'react-icons/fa';
 import ModelDetailModal from './components/ModelDetailModal';
@@ -14,10 +16,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [allTasks, setAllTasks] = useState([]);
   const [allArchitectures, setallArchitectures] = useState([]);
+  const [sortConfig, setSortConfig] = useState([]);
+
 
   // Filtres simples
-  const [selectedTask, setSelectedTask] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedTasks, setSelectedTasks] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedCreator, setSelectedCreator] = useState('');
   const [selectedID, setSelectedID] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -44,6 +48,59 @@ const Dashboard = () => {
   const [selectedModel, setSelectedModel] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
 
+  const colourStyles = {
+    control: (styles) => ({ ...styles, backgroundColor: 'white' }),
+    option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+      const color = chroma(data.color);
+      return {
+        ...styles,
+        backgroundColor: isDisabled
+          ? undefined
+          : isSelected
+          ? data.color
+          : isFocused
+          ? color.alpha(0.1).css()
+          : undefined,
+        color: isDisabled
+          ? '#ccc'
+          : isSelected
+          ? chroma.contrast(color, 'white') > 2
+            ? 'white'
+            : 'black'
+          : data.color,
+        cursor: isDisabled ? 'not-allowed' : 'default',
+        ':active': {
+          ...styles[':active'],
+          backgroundColor: !isDisabled
+            ? isSelected
+              ? data.color
+              : color.alpha(0.3).css()
+            : undefined,
+        },
+      };
+    },
+    multiValue: (styles, { data }) => {
+      const color = chroma(data.color);
+      return {
+        ...styles,
+        backgroundColor: color.alpha(0.1).css(),
+      };
+    },
+    multiValueLabel: (styles, { data }) => ({
+      ...styles,
+      color: data.color,
+    }),
+    multiValueRemove: (styles, { data }) => ({
+      ...styles,
+      color: data.color,
+      ':hover': {
+        backgroundColor: data.color,
+        color: 'white',
+      },
+    }),
+  };
+
+
   // → Redirection si pas connecté
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -64,6 +121,39 @@ const Dashboard = () => {
     }
   }, []);
 
+  const handleSort = (key) => {
+    setSortConfig(prev => {
+      const existingIndex = prev.findIndex(s => s.key === key);
+
+      if (existingIndex === -1) {
+        return [...prev, { key, direction: 'asc' }];
+      }
+
+      const existing = prev[existingIndex];
+      let newDirection;
+
+      if (existing.direction === 'asc'){
+        newDirection = 'desc';
+      }
+
+      else if (existing.direction === 'desc') {
+        return prev.filter(s => s.key !== key);
+      }
+
+      const newSortConfig = [...prev];
+      newSortConfig[existingIndex] = { key, direction: newDirection };
+      return newSortConfig;
+    });
+  };
+
+  const getArrow = (key) => {
+    const sortItem = sortConfig.find(s => s.key === key);
+    if (!sortItem ||sortItem.key !== key) return "▲▼";
+    if (sortItem.direction === 'asc') return '▲';
+    if (sortItem.direction === 'desc') return '▼';
+    return null;
+  };
+
   // → Fetch des données filtrées (avec pagination)
   const fetchFilteredData = useCallback(async () => {
     setLoading(true);
@@ -72,8 +162,14 @@ const Dashboard = () => {
     const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams();
 
-    if (selectedTask) queryParams.append('task', selectedTask);
-    if (selectedType) queryParams.append('architecture', selectedType);
+    if (selectedTypes && selectedTypes.length > 0) {
+      queryParams.append('architecture', selectedTypes.join(','));
+    }
+
+    if (selectedTasks && selectedTasks.length > 0) {
+      queryParams.append('task', selectedTasks.join(','));
+    }
+
     if (selectedCreator) queryParams.append('creator', selectedCreator);
     if (selectedID) queryParams.append('id', selectedID);
 
@@ -98,6 +194,11 @@ const Dashboard = () => {
     if (asStudent) queryParams.append('as_student', 'true');
     if (hasOptimization) queryParams.append('has_optimization', 'true');
 
+    if (sortConfig && sortConfig.length > 0) {
+      const orderingValue = sortConfig.map(({ key, direction }) => (direction === 'desc' ? `-${key}` : key)).join(',');
+      queryParams.append('ordering', orderingValue);
+    }
+
     const url = `http://127.0.0.1:8000/models/get_simplify_data_models/?${queryParams.toString()}`;
 
     try {
@@ -109,6 +210,7 @@ const Dashboard = () => {
         }
       });
       if (!response.ok) throw new Error('Erreur lors du chargement des données filtrées');
+      
       const result = await response.json();
       setData(result.models.results || []);
       setTotalPages(Math.ceil(result.models.count / pageSize));
@@ -118,9 +220,9 @@ const Dashboard = () => {
       setLoading(false);
     }
   }, [
-    selectedTask, selectedType, selectedCreator, selectedID,
+    selectedTasks, selectedTypes, selectedCreator, selectedID,
     selectedEmissionRange, selectedEnergyConsumptionRange, selectedTrainingTimeRange,
-    asTeacher, asStudent, hasOptimization, currentPage, pageSize
+    asTeacher, asStudent, hasOptimization, currentPage, pageSize, sortConfig
   ]);
 
   useEffect(() => {
@@ -221,30 +323,28 @@ const Dashboard = () => {
   };
 
   // → Composant pour un filtre dropdown
-  const renderFilterGroup = (label, options, selectedValue, colors, onChange) => (
-    <div className="filter-group">
-      <label className="filter-label">{label}</label>
-      <select
-        value={selectedValue}
-        onChange={e => onChange(e.target.value)}
-        className="picker"
-      >
-        <option value=''>Tous</option>
-        {options.map((opt, i) => (
-          <option key={i} value={opt}
-          style={{
-              backgroundColor: colors !== null ? colors[i]: 'none',
-              color: colors !== null ? '#fff': '#000',
-              padding: '1rem',
-              margin:'1rem',
-              border: selectedValue === opt ? '2px solid #000' : 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}>{opt}</option>
-        ))}
-      </select>
-    </div>
-  );
+  const renderFilterGroup = (label, options, colors, onChange) => {
+    const formattedOptions = options.map((opt, i) => ({
+      value: opt,
+      label: opt,
+      color: colors?.[i] || 'black'
+    }));
+
+    return (
+      <div className="filter-group">
+        <label className="filter-label">{label}</label>
+        <Select
+          isMulti
+          options={formattedOptions}
+          onChange={newSelected =>
+            onChange(newSelected.map(opt => opt.value))
+          }
+          styles={colourStyles}
+          classNamePrefix="react-select"
+        />
+      </div>
+    );
+  };
 
   // → Mise à jour d’un slider “double range”
   const handleRangeChange = (setter, index, value, currentRange) => {
@@ -284,8 +384,8 @@ const Dashboard = () => {
 
             <button className="logout-button" onClick={handleLogout}>Déconnexion</button>
 
-            {renderFilterGroup('Tâche', allTasks.map(t => t.name), selectedTask, allTasks.map(t => t.color), setSelectedTask)}
-            {renderFilterGroup('Type de Modèle', allArchitectures, selectedType, null, setSelectedType)}
+            {renderFilterGroup('Tâche', allTasks.map(t => t.name), allTasks.map(t => t.color), setSelectedTasks)}
+            {renderFilterGroup('Type de Modèle', allArchitectures, null, setSelectedTypes)}
 
             <div className="filter-group">
               <label className="filter-label" htmlFor="creator-filter">Créateur</label>
@@ -333,7 +433,16 @@ const Dashboard = () => {
             <table>
               <thead>
                 <tr>
-                  {tableHeaders.map(h => <th key={h.key}>{h.label}</th>)}
+                  {tableHeaders.map(h => (                
+                    <th key={h.key} onClick={() =>{
+                      if (h.key === "id" || h.key === "model_size" || h.key === "creation_date"){
+                        handleSort(h.key);
+                      }
+                    }}>
+                    {h.label} {(h.key === "id" || h.key === "model_size" || h.key === "creation_date") ? <span>{getArrow(h.key)}</span> : null}
+                    </th>
+                  ))}
+
                 </tr>
               </thead>
               <tbody>
@@ -376,7 +485,8 @@ const Dashboard = () => {
                                       padding: '0.5rem 1rem',
                                       borderRadius: '6px',
                                       fontSize: '0.7rem',
-                                      fontWeight: 'bold'
+                                      fontWeight: 'bold',
+                                      width:'100%'
                                     }}
                                   >
                                     {task.name}

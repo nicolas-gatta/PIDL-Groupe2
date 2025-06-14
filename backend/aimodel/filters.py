@@ -1,7 +1,7 @@
 import django_filters
 from rest_framework.exceptions import ValidationError 
 from .models import ModelTask, Task
-from .models_views import BasicDataModel, TaskView, ModelTaskView
+from .models_views import BasicDataModel, TaskView, ModelTaskView, ModelView
 
 class StrictFilterSet(django_filters.FilterSet):
 
@@ -19,7 +19,7 @@ class StrictFilterSet(django_filters.FilterSet):
 class BasicDataFilter(StrictFilterSet):
     id = django_filters.NumberFilter(field_name='id')
     task = django_filters.CharFilter(method='filter_by_task')
-    architecture = django_filters.CharFilter(lookup_expr='icontains')
+    architecture = django_filters.CharFilter(method='filter_by_architecture')
     precision = django_filters.CharFilter(lookup_expr='iexact')
     model_size_label = django_filters.CharFilter(lookup_expr='iexact')
     model_size_min = django_filters.NumberFilter(field_name='model_size', lookup_expr='gte')
@@ -43,5 +43,13 @@ class BasicDataFilter(StrictFilterSet):
         task_ids = TaskView.objects.filter(name__in=task_names).values_list('id', flat=True)
         
         model_ids = ModelTaskView.objects.filter(task_id__in=task_ids).values_list('model_id', flat=True)
+
+        return queryset.filter(id__in=model_ids)
+    
+    def filter_by_architecture(self, queryset, name, value):
+        
+        architecture_names = [v.strip() for v in value.split(',') if v.strip()]
+        
+        model_ids = ModelView.objects.filter(architecture__in=architecture_names).values_list('id', flat=True)
 
         return queryset.filter(id__in=model_ids)

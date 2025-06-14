@@ -46,6 +46,7 @@
     border-radius: 4px;
     opacity: 0.5;
     transition: opacity 0.3s ease;
+    color: white;
 }
 
     .toggle-button:hover {
@@ -398,7 +399,22 @@ th {
   font-size: 0.95rem;
 }
 
-.pagination span {
-  white-space: nowrap;
+.table-container th {
+  cursor: 'pointer';
 }
+
+.option-filter{
+    background-color: gray;
+    color: #ffffff;
+    padding: 1rem;
+    margin:1rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.option-filter:checked {
+  background-color: red; /* or any color */
+  color: white;
+}
+
 
