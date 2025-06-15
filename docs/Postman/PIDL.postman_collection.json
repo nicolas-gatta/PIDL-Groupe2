@@ -1348,7 +1348,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}models/get_simplify_data_models/?architecture=CNN",
+									"raw": "{{base_url}}models/get_simplify_data_models/?architecture=CNN, Transformer",
 									"host": [
 										"{{base_url}}models"
 									],
@@ -1359,7 +1359,7 @@
 									"query": [
 										{
 											"key": "architecture",
-											"value": "CNN"
+											"value": "CNN, Transformer"
 										}
 									]
 								}
