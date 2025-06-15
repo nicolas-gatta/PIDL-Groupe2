@@ -77,8 +77,8 @@ VALUES
 (8, 'YOLO-s-int8', 'CNN', 11.13, 168, 's', 28.46, 240.0, 8000, '2024-01-08 10:00:00', 'Small model int8', 2, 5),
 (9, 'MobileNetV2-base', 'CNN', 3.5, 88, 's', 307.45, 112.16, 5000, '2025-04-28 09:00:00', 'Base MobileNetV2 model', 2, 3),
 (10, 'ResNet18-base', 'CNN', 11.69, 100, 'm', 1816.56, 374.06, 7000, '2025-04-28 09:30:00', 'Base ResNet18 model', 3, 3),
-(11, 'MobileNetV2-quant-int8', 'CNN', 0.73, 88, 's', 64.26, 23.44, 5100, '2025-04-28 10:00:00', 'Quantized MobileNetV2 INT8', 3, 5),
-(12, 'ResNet18-quant-int8', 'CNN', 3.18, 100, 'm', 494.33, 101.79, 7200, '2025-04-28 10:30:00', 'Quantized ResNet18 INT8', 3, 5);
+(11, 'MobileNetV2-quant-int8', 'RNN', 0.73, 88, 's', 64.26, 23.44, 5100, '2025-04-28 10:00:00', 'Quantized MobileNetV2 INT8', 3, 5),
+(12, 'ResNet18-quant-int8', 'RNN', 3.18, 100, 'm', 494.33, 101.79, 7200, '2025-04-28 10:30:00', 'Quantized ResNet18 INT8', 3, 5);
 
 
 -- =====================================================
@@ -148,7 +148,7 @@ VALUES
 -- =====================================================
 INSERT INTO `pidl`.`model_optimization` (`model_optimization_id`, `model_fk`, `optimization_fk`) 
 VALUES 
-(1, 1, 1), (2, 1, 2), (3, 2, 3);
+(1, 1, 1), (2, 2, 2), (3, 3, 3);
 
 -- =====================================================
 -- Insert Data: model_task

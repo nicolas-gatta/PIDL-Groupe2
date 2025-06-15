@@ -17,11 +17,14 @@ const Dashboard = () => {
   const [allTasks, setAllTasks] = useState([]);
   const [allArchitectures, setallArchitectures] = useState([]);
   const [sortConfig, setSortConfig] = useState([]);
+  const [optTypes, setOptTypes] = useState([]);
 
 
   // Filtres simples
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedOptimizationTypes, setSelectedOptimizationTypes] = useState([]);
+  
   const [selectedCreator, setSelectedCreator] = useState('');
   const [selectedID, setSelectedID] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -31,12 +34,7 @@ const Dashboard = () => {
   const [selectedEnergyConsumptionRange, setSelectedEnergyConsumptionRange] = useState([0, 500]);
   const [selectedTrainingTimeRange, setSelectedTrainingTimeRange] = useState([0, 1000000]);
   const [selectedParametersRange, setSelectedParametersRange] = useState([0, 10000]);
-
-  // Booléens
-  const [asTeacher, setAsTeacher] = useState(false);
-  const [asStudent, setAsStudent] = useState(false);
-  const [hasOptimization, setHasOptimization] = useState(false);
-
+  
   const [searchTerm, setSearchTerm] = useState('');
 
   // Pagination
@@ -169,6 +167,9 @@ const Dashboard = () => {
     if (selectedTasks && selectedTasks.length > 0) {
       queryParams.append('task', selectedTasks.join(','));
     }
+    if (selectedOptimizationTypes && selectedOptimizationTypes.length > 0) {
+      queryParams.append('optimization_type', selectedOptimizationTypes.join(','));
+    }
 
     if (selectedCreator) queryParams.append('creator', selectedCreator);
     if (selectedID) queryParams.append('id', selectedID);
@@ -190,9 +191,7 @@ const Dashboard = () => {
     queryParams.append('page', currentPage);
     queryParams.append('page_size', pageSize);
 
-    if (asTeacher) queryParams.append('as_teacher', 'true');
-    if (asStudent) queryParams.append('as_student', 'true');
-    if (hasOptimization) queryParams.append('has_optimization', 'true');
+    
 
     if (sortConfig && sortConfig.length > 0) {
       const orderingValue = sortConfig.map(({ key, direction }) => (direction === 'desc' ? `-${key}` : key)).join(',');
@@ -222,7 +221,7 @@ const Dashboard = () => {
   }, [
     selectedTasks, selectedTypes, selectedCreator, selectedID,
     selectedEmissionRange, selectedEnergyConsumptionRange, selectedTrainingTimeRange,
-    asTeacher, asStudent, hasOptimization, currentPage, pageSize, sortConfig
+    selectedOptimizationTypes, currentPage, pageSize, sortConfig
   ]);
 
   useEffect(() => {
@@ -277,8 +276,37 @@ const Dashboard = () => {
   useEffect(() => {
     fetchAllArchitectures();
   }, [fetchAllArchitectures]);
-  
 
+
+  const fetchAllOptimizationTypes = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(
+        'http://127.0.0.1:8000/models/get_all_optimization_types/',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch optimization types');
+
+      const result = await response.json();
+      // l’API renvoie  {"optimization_types": [...] }
+      setOptTypes(result.optimization_types || []);
+      //console.log("optimization_types",result)
+    } catch (err) {
+      console.error('Error fetching optimization types:', err.message);
+    }
+  }, []);
+
+  // on charge une seule fois au montage
+  useEffect(() => {
+    fetchAllOptimizationTypes();
+  }, [fetchAllOptimizationTypes]);
 
   // → Options dynamiques pour les filtres dropdown
   const allIDs = Array.from(new Set(data.map(m => m.id)));
@@ -301,19 +329,8 @@ const Dashboard = () => {
     { key: 'parameters_m', label: 'Paramètres (M)' },
     { key: 'flops_b', label: 'FLOPs (B)' },
     { key: 'model_size', label: 'Taille (Mo)' },
-    { key: 'training_time', label: 'Temps entraînement (s)' },
     { key: 'creation_date', label: 'Date création' },
-    { key: 'fps_gpu', label: 'FPS GPU' },
-    { key: 'fps_cpu', label: 'FPS CPU' },
-    { key: 'std_gpu', label: 'STD GPU' },
-    { key: 'std_cpu', label: 'STD CPU' },
-    { key: 'num_macs', label: 'NUM MACS' },
-    { key: 'average_emissions_per_inference', label: 'Émissions moyennes / inférence (gCO₂eq)' },
-    { key: 'average_energy_per_inference', label: 'Énergie moyenne / inférence (mWh)' },
-    { key: 'total_emissions_gco2eq', label: 'CO₂ (g)' },
-    { key: 'total_energy_mwh', label: 'Énergie (mWh)' },
-    { key: 'map_50', label: 'mAP@50' },
-    { key: 'map_50_95', label: 'mAP@50:95' },
+    //{ Key: 'model_description', label: 'description'}
   ];
 
   // → Déconnexion
@@ -386,6 +403,7 @@ const Dashboard = () => {
 
             {renderFilterGroup('Tâche', allTasks.map(t => t.name), allTasks.map(t => t.color), setSelectedTasks)}
             {renderFilterGroup('Type de Modèle', allArchitectures, null, setSelectedTypes)}
+            {renderFilterGroup('Type d’optimisation',optTypes, null, setSelectedOptimizationTypes)}
 
             <div className="filter-group">
               <label className="filter-label" htmlFor="creator-filter">Créateur</label>
@@ -696,31 +714,6 @@ const Dashboard = () => {
                     className="range-number-input"
                   />
                 </div>
-              </div>
-
-              {/* Checkboxes */}
-              <div className="checkbox-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={asTeacher}
-                    onChange={() => setAsTeacher(v => !v)}
-                  /> En tant que Professeur
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={asStudent}
-                    onChange={() => setAsStudent(v => !v)}
-                  /> En tant qu'Étudiant
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={hasOptimization}
-                    onChange={() => setHasOptimization(v => !v)}
-                  /> Avec Optimisation
-                </label>
               </div>
 
               <button className="close-modal" onClick={() => setShowAdvancedFilters(false)}>

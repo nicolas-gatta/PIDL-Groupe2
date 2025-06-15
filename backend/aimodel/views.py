@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from .models_views import BasicDataModel, FullDataModel, TaskView, PrecisionView
+from .models_views import BasicDataModel, FullDataModel, TaskView, PrecisionView, OptimizationView
 from .serializers import BasicDataModelSerializer, FullDataModelSerializer, TaskSerializer, PrecisionSerializer
 from rest_framework import status, generics
 from django_filters.rest_framework import DjangoFilterBackend
@@ -117,6 +117,37 @@ def get_all_model_architecture(request):
     
     except BasicDataModel.DoesNotExist:
         return Response({"error": "No available Data"}, status = status.HTTP_404_NOT_FOUND)
+    
+@extend_schema(
+    summary="List of optimisation type",
+    description="Returns all distincts optimization type.",
+    responses={
+        200: FullDataModelSerializer(many=True),
+        403: OpenApiResponse(description="Login Required"),
+        404: OpenApiResponse(description="optimization type not found")
+    }
+)
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_all_optimization_types(request):
+    """
+    Exemple de champ :  Optimization.type  (valeurs : 'Pruning', 'Quantization', …)
+    """
+    try:
+        opt_types = (OptimizationView.objects.values_list('name', flat=True).distinct().order_by('name'))
+        if not opt_types:
+            return Response(
+                {"error": "No optimization types found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        return Response({"optimization_types": list(opt_types)},
+                        status=status.HTTP_200_OK)
+
+    except Exception:      
+        return Response({"error": "No available data"},
+                        status=status.HTTP_404_NOT_FOUND)
+
 
 @extend_schema(
     summary="Create a full model using json",

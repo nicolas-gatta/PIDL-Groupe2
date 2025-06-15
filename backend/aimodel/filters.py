@@ -1,7 +1,7 @@
 import django_filters
 from rest_framework.exceptions import ValidationError 
 from .models import ModelTask, Task
-from .models_views import BasicDataModel, TaskView, ModelTaskView, ModelView
+from .models_views import BasicDataModel, TaskView, ModelTaskView, ModelView, OptimizationView, ModelOptimizationView
 
 class StrictFilterSet(django_filters.FilterSet):
 
@@ -31,6 +31,7 @@ class BasicDataFilter(StrictFilterSet):
     max_training_time = django_filters.NumberFilter(field_name='training_time', lookup_expr='lte')
     user_id = django_filters.NumberFilter(field_name='user_id')
     creator = django_filters.CharFilter(lookup_expr='icontains')
+    optimization_type = django_filters.CharFilter(method='filter_by_optimization')
     
     class Meta:
         model = BasicDataModel
@@ -52,4 +53,14 @@ class BasicDataFilter(StrictFilterSet):
         
         model_ids = ModelView.objects.filter(architecture__in=architecture_names).values_list('id', flat=True)
 
+        return queryset.filter(id__in=model_ids)
+    def filter_by_optimization(self, queryset, name, value):
+        """
+        value  = chaîne de mots séparés par virgule → ex : "Pruning,Quantization"
+        """
+        opt_types = [v.strip() for v in value.split(',') if v.strip()]
+        opt_ids = OptimizationView.objects.filter(name__in=opt_types) \
+                                        .values_list('id', flat=True)
+        model_ids = ModelOptimizationView.objects.filter(optimization_id__in=opt_ids) \
+                                                .values_list('model_id', flat=True)
         return queryset.filter(id__in=model_ids)
