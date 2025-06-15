@@ -115,7 +115,7 @@ python manage.py startapp X
 ### 1. Go to the frontend folder
 
 ```bash
-cd frontend
+cd frontend/myapp
 ```
 
 ### 2. Install Dependencies
