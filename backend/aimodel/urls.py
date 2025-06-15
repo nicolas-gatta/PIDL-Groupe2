@@ -7,6 +7,7 @@ urlpatterns = [
     path('get_all_tasks/', get_all_tasks, name = "get_all_tasks"),
     path('get_all_precisions/', get_all_precisions, name = "get_all_precisions"),
     path('get_all_architecture/', get_all_model_architecture, name = "get_all_architecture"),
+    path("get_all_optimization_types/", get_all_optimization_types, name="get_all_optimization_types"),
     
     path('create_model/', create_model, name = "create_model_json"),
     
