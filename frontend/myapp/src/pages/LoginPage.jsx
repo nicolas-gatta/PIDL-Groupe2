@@ -1,8 +1,9 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 import logo from '../images/Logo.png';
+
 
 
 export default function LoginPage() {
@@ -21,6 +22,33 @@ export default function LoginPage() {
     const [signupSuccess, setSignupSuccess] = useState('');
 
     const BACKEND = 'http://127.0.0.1:8000';
+
+    const checkTokenAndRedirect = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${BACKEND}/auth/validate_token/`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Token ${token}`,
+                },
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    navigate('/dashboard');
+                }
+            } else {
+                console.log('Token found but invalid, staying on login.');
+            }
+        } catch (e) {
+            console.error('Token check failed', e);
+        }
+    };
 
     const handleLogin = async () => {
         setLoginError('');
@@ -80,6 +108,10 @@ export default function LoginPage() {
             setSignupError('Erreur réseau');
         }
     };
+
+    useEffect(() => {
+        checkTokenAndRedirect();
+    }, []);
 
     return (
         <div className="login-container">
