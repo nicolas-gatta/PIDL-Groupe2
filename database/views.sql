@@ -1,3 +1,8 @@
+
+-- =====================================================
+-- View: resource
+-- Description: Defines different ressource use for evaluation or/and optimization
+-- =====================================================
 CREATE OR REPLACE VIEW `pidl`.`v_resource` AS
     SELECT
         `resource_id` AS `id`,

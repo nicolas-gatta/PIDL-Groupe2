@@ -135,9 +135,9 @@ CREATE TABLE `pidl`.`quantization`(
    `quantization_id` INT PRIMARY KEY AUTO_INCREMENT,
    `quantization_type` VARCHAR(50),             -- e.g., static, dynamic, qat
    `quantization_description` VARCHAR(100),
-   `precision_fk` INT NOT NULL,            -- e.g., int8, fp16
    `quantization_model_size_reduction` FLOAT,
    `quantization_memory_reduction` FLOAT,
+   `precision_fk` INT NOT NULL,            -- e.g., int8, fp16
    `optimization_fk` INT NOT NULL UNIQUE,
    CONSTRAINT `FK_quantization_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE,
    CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
