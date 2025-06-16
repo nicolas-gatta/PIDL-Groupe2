@@ -193,6 +193,76 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Validate Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"User object has the correct structure\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData.user).to.be.an('object');\r",
+									"    pm.expect(responseData.user.user_id).to.exist.and.to.be.a('number');\r",
+									"    pm.expect(responseData.user.first_name).to.exist.and.to.be.a('string');\r",
+									"    pm.expect(responseData.user.last_name).to.exist.and.to.be.a('string');\r",
+									"    pm.expect(responseData.user.email).to.exist.and.to.be.a('string');\r",
+									"    pm.expect(responseData.user.is_active).to.exist.and.to.be.a('boolean');\r",
+									"    pm.expect(responseData.user.is_staff).to.exist.and.to.be.a('boolean');\r",
+									"    pm.expect(responseData.user.role_fk).to.exist.and.to.be.an('object');\r",
+									"    pm.expect(responseData.user.role_fk.role_id).to.exist.and.to.be.a('number');\r",
+									"    pm.expect(responseData.user.role_fk.role_name).to.exist.and.to.be.a('string');\r",
+									"    pm.expect(responseData.user.role_fk.role_description).to.exist.and.to.be.a('string');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"User object contains required properties\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.user).to.be.an('object');\r",
+									"    pm.expect(responseData.user).to.include.all.keys('user_id', 'first_name', 'last_name', 'email', 'is_active', 'is_staff', 'role_fk');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}auth/validate_token/",
+							"host": [
+								"{{base_url}}auth"
+							],
+							"path": [
+								"validate_token",
+								""
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -2247,20 +2317,6 @@
 										""
 									]
 								}
-							},
-							"response": []
-						},
-						{
-							"name": "Update Model Data",
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "{{access_token}}",
-										"type": "text"
-									}
-								]
 							},
 							"response": []
 						},

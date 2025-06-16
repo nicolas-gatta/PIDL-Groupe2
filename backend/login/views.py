@@ -92,4 +92,17 @@ def register_view(request):
     
     except Exception as e:
         return Response({"error":str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def validate_token(request):
+    try:
+        token = Token.objects.get(user=request.user)
+    except Token.DoesNotExist:
+        return Response({"detail": "Token not found."}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = CustomUserSerializer(instance = request.user)
+    return Response({'token': token.key, "user": serializer.data}, status = status.HTTP_200_OK)
 
