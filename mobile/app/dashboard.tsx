@@ -8,7 +8,8 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
-  Alert
+  Alert,
+  RefreshControl
 } from 'react-native';
 import { router } from 'expo-router';
 
@@ -19,28 +20,53 @@ const DashboardPage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    
+    const token = await SecureStore.getItemAsync('token');
+    try {
+      const response = await fetch(`${BACKEND}/models/get_simplify_data_models/?page=1&page_size=10`, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+      const data = await response.json();
+      const newModels = data.models?.results || [];
+      setModels(newModels);
+      setHasMore(!!data.models?.next);
+      if (!!data.models?.next){
+        setPage(2);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des modèles', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const fetchModels = useCallback(async () => {
+
     if (loading || !hasMore) return;
 
     setLoading(true);
     const token = await SecureStore.getItemAsync('token');
-
+    let data;
     try {
       const response = await fetch(`${BACKEND}/models/get_simplify_data_models/?page=${page}&page_size=10`, {
         headers: {
           Authorization: `Token ${token}`,
         },
       });
-
-      const data = await response.json();
+      data = await response.json();
+    } catch (error) {
+      console.error('Erreur lors de la récupération des modèles', error);
+    } finally {
       const newModels = data.models?.results || [];
       setModels(prev => [...prev, ...newModels]);
       setHasMore(!!data.models?.next);
       setPage(p => p + 1);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des modèles', error);
-    } finally {
       setLoading(false);
     }
   }, [page, loading, hasMore]);
@@ -56,18 +82,46 @@ const DashboardPage = () => {
   };
 
   const renderCard = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.card}>
+<TouchableOpacity style={styles.card}>
       <Text style={styles.modelName}>{item.name}</Text>
-      <Text>Architecture: {item.architecture}</Text>
-      <Text>Tâches: {item.tasks.map((t: any) => t.name).join(', ')}</Text>
-      <Text>Format: {item.precision}</Text>
-      <Text>Couches: {item.layers}</Text>
-      <Text>Params (M): {item.parameters_m}</Text>
-      <Text>FLOPs (B): {item.flops_b}</Text>
-      <Text>Taille (Mo): {item.model_size}</Text>
-      <Text>Créateur: {item.creator}</Text>
-      <Text>Date de création: {item.creation_date}</Text>
+      <View style={styles.underline} />
 
+      <View style={styles.infoContainer}>
+        <View style={styles.infoColumn}>
+          <Text style={styles.infoLabel}>Format:</Text>
+          <Text>{item.precision}</Text>
+
+          <Text style={styles.infoLabel}>Params (M):</Text>
+          <Text>{item.parameters_m}</Text>
+
+          <Text style={styles.infoLabel}>Taille (Mo):</Text>
+          <Text>{item.model_size}</Text>
+        </View>
+
+        <View style={styles.infoColumn}>
+          <Text style={styles.infoLabel}>Couches:</Text>
+          <Text>{item.layers}</Text>
+
+          <Text style={styles.infoLabel}>FLOPs (B):</Text>
+          <Text>{item.flops_b}</Text>
+
+          <Text style={styles.infoLabel}>Architecture:</Text>
+          <Text>{item.architecture}</Text>
+        </View>
+      </View>
+
+      <View style={styles.taskContainer}>
+        {item.tasks.map((t: any, index: number) => (
+          <View key={index} style={[styles.taskBadge, { backgroundColor: t.color }]}>
+            <Text style={styles.taskText}>{t.name}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>👤 {item.creator}</Text>
+        <Text style={styles.footerText}>📅 {item.creation_date}</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -81,6 +135,8 @@ const DashboardPage = () => {
         contentContainerStyle={styles.cardList}
         onEndReached={fetchModels}
         onEndReachedThreshold={0.5}
+        refreshing={refreshing} 
+        onRefresh={onRefresh}   
         ListFooterComponent={
           loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
         }
@@ -117,6 +173,11 @@ const styles = StyleSheet.create({
   cardList: {
     padding: 10,
   },
+    underline: {
+    height: 2,
+    backgroundColor: '#ccc',
+    marginVertical: 8,
+  },
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
@@ -138,7 +199,43 @@ const styles = StyleSheet.create({
     marginTop: 50,
     fontSize: 16,
     color: '#999',
-  }
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  infoColumn: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  taskContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+    gap: 8,
+  },
+  taskBadge: {
+    backgroundColor: '#e0f7fa',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  taskText: {
+    fontSize: 12,
+    color: '#ffffff',
+  },
+  footer: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#555',
+  },
 });
 
 export default DashboardPage;

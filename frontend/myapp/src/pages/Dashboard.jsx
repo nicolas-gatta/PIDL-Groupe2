@@ -492,8 +492,8 @@ const Dashboard = () => {
                         }
                         if (h.key === "tasks") {
                           return (
-                            <td key={h.key}>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            <td key={h.key} style = {{width:'10%' }}>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem'}}>
                                 {model.tasks.map((task, i) => (
                                   <div
                                     key={i}
@@ -503,8 +503,7 @@ const Dashboard = () => {
                                       padding: '0.5rem 1rem',
                                       borderRadius: '6px',
                                       fontSize: '0.7rem',
-                                      fontWeight: 'bold',
-                                      width:'100%'
+                                      fontWeight: 'bold'
                                     }}
                                   >
                                     {task.name}
@@ -552,6 +551,11 @@ const Dashboard = () => {
               <option value={100}>100</option>
             </select>
             <span>lignes</span>
+            <button
+              onClick={() => fetchFilteredData()}
+            >
+              Rafraîchir
+            </button>
           </div>
 
           {showDetail && selectedModel && (
