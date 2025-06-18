@@ -70,6 +70,7 @@ class KnowledgeDistillationSerializer(serializers.ModelSerializer):
         model = ModelView.objects.get(id = obj.teacher_id)
         
         return ModelSerializer(model).data
+    
 
 class BasicDataModelSerializer(serializers.ModelSerializer):
     tasks = serializers.SerializerMethodField()

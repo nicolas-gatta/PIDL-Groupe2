@@ -15,6 +15,8 @@ from django.utils import timezone
 from .models import Model, Precision, Resource, Task, ModelTask, Evaluation, Optimization, ModelOptimization, Quantization, Pruning, KnowledgeDistillation
 from login.models import CustomUser
 from .pagination import CustomPageNumberPagination
+from django.db import transaction
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -272,11 +274,152 @@ def create_model(request):
 )
 @api_view(['PUT'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated]) 
+@permission_classes([IsAuthenticated])
 @group_and_super_user_checks(["Researcher"])
 def update_model(request):
-    pass
-    return Response({"message": "Model Updated Successfully"}, status = status.HTTP_200_OK)
+    """
+    Corps JSON attendu = le même format que celui renvoyé à l’appli :
+    {
+      "id": 12,
+      "name": "...",
+      "architecture": "...",
+      ...
+      "evaluations": [ { … } ],
+      "optimizations": [ { … } ],
+      "teachers": [ {id: x, name: …} ],
+      "students": [ {id: y, name: …} ]
+    }
+    """
+    data = request.data
+    model_id = request.query_params.get('id')
+    if not model_id:
+        return Response({"error": "id query param manquant"}, status=400)
+
+    try:
+        model = Model.objects.get(pk=model_id)
+    except Model.DoesNotExist:
+        return Response({"error": "Modèle introuvable"}, status=404)
+
+    if model.user_fk_id != request.user.pk and not request.user.is_superuser:
+        return Response({"error": "Vous n’êtes pas propriétaire"}, status=406)
+
+    # -------------------------------------------------
+    with transaction.atomic():
+
+        # 1) champs simples --------------------------------
+        field_map = {
+            "name": "model_name",
+            "architecture": "architecture",
+            "parameters_m": "parameter_count",
+            "layers": "layer_count",
+            "model_size_label": "model_size_label",
+            "flops_b": "flops_billion",
+            "model_size": "model_size",
+            "training_time": "training_time",
+            "description": "model_description",
+            "precision": "precision_fk",  # nécessite un objet Precision
+        }
+        for front_key, model_field in field_map.items():
+            if front_key in data:
+                if front_key == "precision":
+                    model.precision_fk = Precision.objects.get(precision_name=data["precision"])
+                else:
+                    setattr(model, model_field, data[front_key])
+        model.save()
+
+        # 2) Évaluations -----------------------------------
+        if "evaluations" in data:
+            # on supprime tout puis recrée
+            Evaluation.objects.filter(model_fk=model).delete()
+
+            for ev in data["evaluations"]:
+                res = Resource.objects.create(
+                    resource_name = ev.get("resources_name", "auto-gen"),
+                    cpu_type       = ev["cpu"],
+                    gpu_type       = ev["gpu"],
+                    memory_gpu     = ev["gpu_memory"],
+                    memory_gb      = ev["computer_ram"],
+                    cpu_frequency_ghz = ev["cpu_frenquency"],
+                    max_power_watts   = ev["max_watts"],
+                )
+                Evaluation.objects.create(
+                    model_fk = model,
+                    resource_fk = res,
+                    accuracy = ev["accuracy"],
+                    final_loss = ev["final_loss"],
+                    latency_ms = ev["latency_ms"],
+                    execution_time_ms = ev["execution_time_ms"],
+                    energy_consumption_mwh = ev["total_energy_consumption_mwh"],
+                    emissions_gco2eq = ev["total_emissions_gco2eq"],
+                    average_emissions_per_inference = ev["avg_emissions_per_inference"],
+                    average_energy_per_inference = ev["avg_energy_per_inference"],
+                    fps_gpu = ev["fps_gpu"],
+                    fps_cpu = ev["fps_cpu"],
+                    std_gpu = ev["std_gpu"],
+                    std_cpu = ev["std_cpu"],
+                    num_macs = ev["num_macs"],
+                    map_50 = ev["map_50"],
+                    map_50_95 = ev["map_50_95"],
+                    evaluation_date = datetime.strptime(ev["date"], "%d/%m/%Y %H:%M:%S"),
+                )
+
+        # 3) Optimisations ---------------------------------
+        if "optimizations" in data:
+            # purge
+            ModelOptimization.objects.filter(model_fk=model).delete()
+
+            for opt in data["optimizations"]:
+                res = Resource.objects.create(
+                    resource_name = f"opt-{opt['name']}",
+                    cpu_type  = opt["details"]["cpu"],
+                    gpu_type  = opt["details"]["gpu"],
+                    memory_gpu = opt["details"]["gpu_memory"],
+                    memory_gb  = opt["details"]["computer_ram"],
+                    cpu_frequency_ghz = opt["details"]["cpu_frenquency"],
+                    max_power_watts   = opt["details"]["max_watts"],
+                )
+                optim = Optimization.objects.create(
+                    optimization_name = opt["name"],
+                    optimization_date = opt["details"]["optimization_date"],
+                    optimization_description = opt.get("description", ""),
+                    resource_fk = res
+                )
+                ModelOptimization.objects.create(model_fk=model, optimization_fk=optim)
+
+                # branche selon type
+                t = opt["type"]
+                if t == "Pruning":
+                    Pruning.objects.create(
+                        optimization_fk = optim,
+                        pruning_strategy = opt["details"]["strategy"],
+                        pruning_scope = opt["details"]["scope"],
+                        pruning_compression_ratio = opt["details"]["compression_ratio"],
+                        pruning_memory_reduction  = opt["details"]["memory_reduction"],
+                        pruning_rate = opt["details"]["rate"],
+                    )
+                elif t == "Quantization":
+                    Quantization.objects.create(
+                        optimization_fk = optim,
+                        quantization_type = opt["details"]["type"],
+                        quantization_model_size_reduction = opt["details"]["model_size_reduction"],
+                        quantization_memory_reduction = opt["details"]["memory_reduction"],
+                        precision_fk = Precision.objects.get(
+                            precision_name = opt["details"]["target_precision"]
+                        ),
+                    )
+                elif t == "KnowledgeDistillation":
+                    teacher_id = opt["details"]["teacher"]["id"]
+                    KnowledgeDistillation.objects.create(
+                        optimization_fk = optim,
+                        softmax_temperature = opt["details"]["softmax_temperature"],
+                        loss_function = opt["details"]["loss_function"],
+                        student_id = model.pk,
+                        teacher_id = teacher_id,
+                    )
+
+    # fin transaction
+    return Response({"message": "Model Updated Successfully"}, status=status.HTTP_200_OK)
+
 
 @extend_schema(
     summary="Delete a model",
