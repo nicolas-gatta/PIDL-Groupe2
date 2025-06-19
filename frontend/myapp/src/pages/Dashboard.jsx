@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Select from 'react-select';
 import chroma from 'chroma-js';
 import { useNavigate } from 'react-router-dom';
-import { FaBars, FaArrowLeft } from 'react-icons/fa';
+import { FaBars, FaArrowLeft, FaEye, FaTrash} from 'react-icons/fa';
 import ModelDetailModal from './components/ModelDetailModal';
 import './Dashboard.css';
 
@@ -45,6 +45,7 @@ const Dashboard = () => {
   // Modal de détail
   const [selectedModel, setSelectedModel] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [editMode,      setEditMode]      = useState(false);
 
   const colourStyles = {
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
@@ -99,7 +100,7 @@ const Dashboard = () => {
   };
 
 
-  // → Redirection si pas connecté
+  //  Redirection si pas connecté
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -107,7 +108,7 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  // → Chargement des données utilisateur
+  //  Chargement des données utilisateur
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -152,7 +153,7 @@ const Dashboard = () => {
     return null;
   };
 
-  // → Fetch des données filtrées (avec pagination)
+  //  Fetch des données filtrées (avec pagination)
   const fetchFilteredData = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -308,15 +309,15 @@ const Dashboard = () => {
     fetchAllOptimizationTypes();
   }, [fetchAllOptimizationTypes]);
 
-  // → Options dynamiques pour les filtres dropdown
+  //  Options dynamiques pour les filtres dropdown
   const allIDs = Array.from(new Set(data.map(m => m.id)));
 
-  // → Filtrage par recherche simple sur le nom
+  //  Filtrage par recherche simple sur le nom
   const filteredData = data.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // → Colonnes du tableau
+  //  Colonnes du tableau
   const tableHeaders = [
     { key: 'id', label: 'ID du Modèle' },
     { key: 'name', label: 'Nom du Modèle' },
@@ -333,13 +334,13 @@ const Dashboard = () => {
     //{ Key: 'model_description', label: 'description'}
   ];
 
-  // → Déconnexion
+  //  Déconnexion
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  // → Composant pour un filtre dropdown
+  //  Composant pour un filtre dropdown
   const renderFilterGroup = (label, options, colors, onChange) => {
     const formattedOptions = options.map((opt, i) => ({
       value: opt,
@@ -363,7 +364,7 @@ const Dashboard = () => {
     );
   };
 
-  // → Mise à jour d’un slider “double range”
+  //  Mise à jour d’un slider “double range”
   const handleRangeChange = (setter, index, value, currentRange) => {
     let newRange = [...currentRange];
     newRange[index] = value;
@@ -371,6 +372,43 @@ const Dashboard = () => {
     if (index === 1 && value < currentRange[0]) newRange[0] = value;
     setter(newRange);
   };
+
+  // suppression de modèle
+  const handleDelete = async (model_id) => {
+  if (!window.confirm('Confirmez-vous la suppression ?')) return;
+
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(
+      `http://127.0.0.1:8000/models/delete_model/${model_id}/`, 
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      }
+    );
+    //console.log("resdelete",res)
+    let payload = {};
+    try { payload = await res.json(); } catch {}
+
+    if (res.status === 200) {
+      alert('Modèle supprimé avec succès.');
+      fetchFilteredData();  // rafraîchir la liste
+    } else if (res.status === 403) {
+      alert(payload.error || payload.message || 'Accès interdit (403).');
+    }else if (res.status === 406) {
+      alert('Vous n\'êtes pas le propriétaire de ce modèle.');
+    } else if (res.status === 404) {
+      alert('Modèle introuvable.');
+    } else {
+      alert('Erreur lors de la suppression.');
+    }
+  } catch (err) {
+    alert('Erreur réseau : ' + err.message);
+  }
+};
 
   return (
     <div>
@@ -451,6 +489,7 @@ const Dashboard = () => {
             <table>
               <thead>
                 <tr>
+                  <th style={{ width: '110px' }}>Actions</th>
                   {tableHeaders.map(h => (                
                     <th key={h.key} onClick={() =>{
                       if (h.key === "id" || h.key === "model_size" || h.key === "creation_date"){
@@ -473,6 +512,45 @@ const Dashboard = () => {
                 ) : (
                   filteredData.map(model => (
                     <tr key={model.id}>
+                      {/*───────────── Colonne Actions ───────────── */}
+                      <td className="action-cell" style={{ textAlign: 'center' }}>
+                        {/* Détails */}
+                        <button
+                          title="Détails"
+                          onClick={() => {
+                            setSelectedModel(model);
+                            setEditMode(false);         
+                            setShowDetail(true);
+                          }}
+                          className="icon-btn"
+                        >
+                          <FaEye />
+                        </button>
+
+                        {/* Éditer / Mettre à jour */}
+                        <button
+                          title="Éditer"
+                          onClick={() => {
+                            setSelectedModel(model);
+                            setEditMode(true);
+                            setShowDetail(true);
+                          }}
+                          className="icon-btn"
+                          style={{ marginLeft: '0.5rem', color: '#007bff' }}
+                        >
+                          ✏️
+                        </button>
+
+                        {/* Supprimer */}
+                        <button
+                          title="Supprimer"
+                          onClick={() => handleDelete(model.id)}
+                          className="icon-btn"
+                          style={{ marginLeft: '0.5rem', color: '#d9534f' }}
+                        >
+                          <FaTrash />
+                        </button>
+                      </td>
                       {tableHeaders.map(h => {
                         if (h.key === 'name') {
                           // La cellule “Nom du modèle” devient un bouton cliquable
@@ -483,10 +561,12 @@ const Dashboard = () => {
                                 onClick={() => {
                                   setSelectedModel(model);
                                   setShowDetail(true);
+                                  setEditMode(false);
                                 }}
                               >
                                 {model.name}
                               </button>
+                              
                             </td>
                           );
                         }
@@ -561,7 +641,12 @@ const Dashboard = () => {
           {showDetail && selectedModel && (
             <ModelDetailModal
               model={selectedModel}
-              onClose={() => setShowDetail(false)}
+              readOnly={!editMode}
+              onClose={() => {
+                setShowDetail(false);
+                setSelectedModel(null);
+                setEditMode(false);}}
+              onSave={() => {fetchFilteredData();}}
             />
           )}
         </main>
