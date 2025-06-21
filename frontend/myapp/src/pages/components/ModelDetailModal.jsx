@@ -311,7 +311,6 @@ const updateStudentField = (index, key, value) => {
         {/* Optimisations */}
         <Section title="Optimisations">
           {readOnly ? (
-            /* --- mode lecture identique à avant --- */
             optimizations.length
               ? optimizations.map(opt => <Opt key={opt.optimization_id} opt={opt} />)
               : <p>— Aucune optimisation —</p>
@@ -383,7 +382,6 @@ const updateStudentField = (index, key, value) => {
                   } else {
                     alert('Erreur lors de la mise à jour.');
                   }
-                  /* ────────────────────────────────────── */
                 } catch (e) {
                   alert('Erreur réseau : ' + e.message);
                 }
