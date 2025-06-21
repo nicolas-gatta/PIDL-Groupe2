@@ -514,6 +514,7 @@ const toggleCompare = (id) => {
                 <tr>
                   <th style={{ width: '40px' }}>✔</th>
                   <th style={{ width: '110px' }}>Actions</th>
+
                   {tableHeaders.map(h => (                
                     <th key={h.key} onClick={() =>{
                       if (h.key === "id" || h.key === "model_size" || h.key === "creation_date"){
@@ -523,6 +524,7 @@ const toggleCompare = (id) => {
                     {h.label} {(h.key === "id" || h.key === "model_size" || h.key === "creation_date") ? <span>{getArrow(h.key)}</span> : null}
                     </th>
                   ))}
+                  <th style={{ width: '110px' }}>Actions</th>
 
                 </tr>
               </thead>
@@ -544,44 +546,6 @@ const toggleCompare = (id) => {
                         />
                       </td>
                       {/*───────────── Colonne Actions ───────────── */}
-                      <td className="action-cell" style={{ textAlign: 'center' }}>
-                        {/* Détails */}
-                        <button
-                          title="Détails"
-                          onClick={() => {
-                            setSelectedModel(model);
-                            setEditMode(false);         
-                            setShowDetail(true);
-                          }}
-                          className="icon-btn"
-                        >
-                          <FaEye />
-                        </button>
-
-                        {/* Éditer / Mettre à jour */}
-                        <button
-                          title="Éditer"
-                          onClick={() => {
-                            setSelectedModel(model);
-                            setEditMode(true);
-                            setShowDetail(true);
-                          }}
-                          className="icon-btn"
-                          style={{ marginLeft: '0.5rem', color: '#007bff' }}
-                        >
-                          ✏️
-                        </button>
-
-                        {/* Supprimer */}
-                        <button
-                          title="Supprimer"
-                          onClick={() => handleDelete(model.id)}
-                          className="icon-btn"
-                          style={{ marginLeft: '0.5rem', color: '#d9534f' }}
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
                       {tableHeaders.map(h => {
                         if (h.key === 'name') {
                           // La cellule “Nom du modèle” devient un bouton cliquable
@@ -626,6 +590,44 @@ const toggleCompare = (id) => {
                         }
                         return <td key={h.key}>{model[h.key] ?? '-'}</td>;
                       })}
+                      <td className="action-cell" style={{ textAlign: 'center' }}>
+                        {/* Détails */}
+                        <button
+                          title="Détails"
+                          onClick={() => {
+                            setSelectedModel(model);
+                            setEditMode(false);         
+                            setShowDetail(true);
+                          }}
+                          className="icon-btn"
+                        >
+                          <FaEye />
+                        </button>
+
+                        {/* Éditer / Mettre à jour */}
+                        <button
+                          title="Éditer"
+                          onClick={() => {
+                            setSelectedModel(model);
+                            setEditMode(true);
+                            setShowDetail(true);
+                          }}
+                          className="icon-btn"
+                          style={{ marginLeft: '0.5rem', color: '#007bff' }}
+                        >
+                          ✏️
+                        </button>
+
+                        {/* Supprimer */}
+                        <button
+                          title="Supprimer"
+                          onClick={() => handleDelete(model.id)}
+                          className="icon-btn"
+                          style={{ marginLeft: '0.5rem', color: '#d9534f' }}
+                        >
+                          <FaTrash />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}

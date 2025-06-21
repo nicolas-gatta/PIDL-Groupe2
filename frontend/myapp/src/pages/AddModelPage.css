@@ -105,8 +105,8 @@
     position: fixed;
     top: 60px;
     left: 10px;
-    background-color: rgba(41, 128, 185, 0.2); /* fond bleu très clair et transparent */
-    color: rgba(255, 255, 255, 0.8); /* texte blanc un peu transparent */
+    background-color: rgba(41, 128, 185, 0.2); 
+    color: rgba(255, 255, 255, 0.8); 
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
@@ -118,8 +118,8 @@
 }
 
     .back-button:hover {
-        background-color: rgba(41, 128, 185, 0.8); /* fond bleu plus visible au hover */
-        color: white; /* texte blanc opaque au hover */
+        background-color: rgba(41, 128, 185, 0.8); 
+        color: white; 
     }
 
 
@@ -166,7 +166,7 @@
         color: #999;
     }
 
-    /* Texte noir quand modifié */
+    /* Texte noir quand modifiï¿½ */
     .json-textarea.not-example {
         color: black;
     }

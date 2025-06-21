@@ -308,7 +308,6 @@ const updateStudentField = (index, key, value) => {
         {(readOnly ? optimizations.length > 0 : form.optimizations.length > 0) && (
         <Section title="Optimisations">
           {readOnly ? (
-            /* --- mode lecture identique à avant --- */
             optimizations.length
               ? optimizations.map(opt => <Opt key={opt.optimization_id} opt={opt} />)
               : <p>— Aucune optimisation —</p>
@@ -381,7 +380,6 @@ const updateStudentField = (index, key, value) => {
                   } else {
                     alert('Erreur lors de la mise à jour.');
                   }
-                  /* ────────────────────────────────────── */
                 } catch (e) {
                   alert('Erreur réseau : ' + e.message);
                 }

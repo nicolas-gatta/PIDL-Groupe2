@@ -1,11 +1,10 @@
-// src/pages/LoginPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 import logo from '../images/Logo.png';
 
 
-
+//définition des States de la page login //
 export default function LoginPage() {
     const navigate = useNavigate();
     const [showSignup, setShowSignup] = useState(false);
@@ -21,7 +20,11 @@ export default function LoginPage() {
     const [signupError, setSignupError] = useState('');
     const [signupSuccess, setSignupSuccess] = useState('');
 
+    // definition de l'adresse du backend //
+
     const BACKEND = 'http://127.0.0.1:8000';
+
+    // Récupération et vérification du token //
 
     const checkTokenAndRedirect = async () => {
         const token = localStorage.getItem('token');
@@ -50,6 +53,8 @@ export default function LoginPage() {
         }
     };
 
+    // envoi du user et password et vérification //
+
     const handleLogin = async () => {
         setLoginError('');
         if (!username || !password) {
@@ -74,6 +79,8 @@ export default function LoginPage() {
             setLoginError('Erreur réseau');
         }
     };
+
+    // envoi des champs du signup//
 
     const handleSignup = async () => {
         setSignupError('');
@@ -113,6 +120,8 @@ export default function LoginPage() {
         checkTokenAndRedirect();
     }, []);
 
+    // Rendu de la page login/signup //
+    
     return (
         <div className="login-container">
             <header className="login-header">
@@ -202,7 +211,7 @@ export default function LoginPage() {
                             }}
                             className="signup-switch-button"
                         >
-                            Déjà un compte ? Se connecter
+                            Déjà inscrit ? Se connecter
                         </button>
                     </>
                 )}
