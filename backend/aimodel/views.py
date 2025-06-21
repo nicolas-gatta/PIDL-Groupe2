@@ -3,13 +3,13 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from .models_views import BasicDataModel, FullDataModel, TaskView, PrecisionView, OptimizationView
+from .models_views import BasicDataModel, FullDataModel, TaskView, PrecisionView, OptimizationView, EvaluationView
 from .serializers import BasicDataModelSerializer, FullDataModelSerializer, TaskSerializer, PrecisionSerializer
 from rest_framework import status, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .filters import BasicDataFilter
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample, OpenApiTypes
 from utils.checks import group_and_super_user_checks, checks_and_get_required_fields, get_present_fields
 from django.utils import timezone
 from .models import Model, Precision, Resource, Task, ModelTask, Evaluation, Optimization, ModelOptimization, Quantization, Pruning, KnowledgeDistillation
@@ -149,6 +149,135 @@ def get_all_optimization_types(request):
     except Exception:      
         return Response({"error": "No available data"},
                         status=status.HTTP_404_NOT_FOUND)
+
+
+ALLOWED_PARAMS = [
+    'accuracy', 'final_loss', 'latency_ms', 'execution_time_ms',
+    'total_energy_consumption_mwh', 'total_emissions_gco2eq',
+    'avg_emissions_per_inference', 'avg_energy_per_inference',
+    'fps_gpu', 'fps_cpu', 'std_cpu', 'std_gpu', 'map_50', 'map_50_95',
+]
+
+DIRECTION = {  # 1 = plus grand est meilleur, 0 = plus petit est meilleur
+    'accuracy': 1, 'map_50': 1, 'map_50_95': 1, 'fps_gpu': 1, 'fps_cpu': 1,
+    'final_loss': 0, 'latency_ms': 0, 'execution_time_ms': 0,
+    'total_energy_consumption_mwh': 0, 'total_emissions_gco2eq': 0,
+    'avg_emissions_per_inference': 0, 'avg_energy_per_inference': 0,
+    'std_cpu': 0, 'std_gpu': 0,
+}
+
+@extend_schema(
+    summary="Compare several models on multiple metrics",
+    description=(
+        "Retourne, pour 2 à 10 modèles, jusqu'à 5 métriques :\n"
+        "- **values** : valeur normalisée ∈ [0,1] (utile pour le radar)\n"
+        "- **real**   : valeur réelle (affichée dans le tooltip)\n\n"
+        " Query-params :\n"
+        " **ids**    : liste séparée par des virgules d'IDs modèle (ex. `ids=12,15,18`)\n"
+        " **params** : liste séparée par des virgules de métriques parmi :\n"
+        f"{', '.join(ALLOWED_PARAMS)}"
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="ids",
+            description="Comma-separated model IDs (min 2, max 10)",
+            required=True,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            examples=["8,9,10"]
+        ),
+        OpenApiParameter(
+            name="params",
+            description="Comma-separated metrics to compare (max 5)",
+            required=True,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            examples=["accuracy,latency_ms,final_loss"]
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            description="Comparison payload",
+            examples=[
+                OpenApiExample(
+                    "Réponse exemple",
+                    value={
+                        "params": ["accuracy", "latency_ms"],
+                        "models": [
+                            {
+                                "id": 10,
+                                "model": "ResNet18-base",
+                                "values": {"accuracy": 1, "latency_ms": 0.5679},
+                                "real":   {"accuracy": 0.768, "latency_ms": 41.0}
+                            },
+                            {
+                                "id": 9,
+                                "model": "MobileNetV2-base",
+                                "values": {"accuracy": 0, "latency_ms": 0},
+                                "real":   {"accuracy": 0.765, "latency_ms": 42.0}
+                            }
+                        ]
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(description="Bad request : ids ou params invalides"),
+        403: OpenApiResponse(description="Login required"),
+    }
+)
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def compare_models(request):
+    ids = [int(i) for i in request.GET.get("ids", "").split(",") if i][:10]
+    params = [p for p in request.GET.get("params", "").split(",") if p in ALLOWED_PARAMS][:5]
+
+    if len(ids) < 2:
+        return Response({"error": "At least 2 model ids required"}, status=400)
+    if not params:
+        return Response({"error": "At least 1 valid param required"}, status=400)
+
+    latest = {}
+    for e in EvaluationView.objects.filter(model_id__in=ids).order_by('model_id', '-date'):
+        latest.setdefault(e.model_id, e)
+
+    bounds = {}
+    for p in params:
+        values = [getattr(e, p, None) for e in latest.values() if getattr(e, p, None) is not None]
+        if not values:
+            continue
+        lo, hi = min(values), max(values)
+        if lo == hi:
+            hi += 1e-9
+        bounds[p] = (lo, hi)
+
+    models = []
+    for mid in ids:
+        e = latest.get(mid)
+        if not e:
+            continue
+        entry = {
+            "model": FullDataModel.objects.get(id=mid).name,
+            "id": mid,
+            "values": {},
+            "real": {}
+        }
+        for p in params:
+            raw = getattr(e, p, None)
+            if raw is None:
+                continue
+            lo, hi = bounds[p]
+            norm = (raw - lo) / (hi - lo)
+            if DIRECTION.get(p, 1) == 0:
+                norm = 1 - norm
+            entry["values"][p] = round(norm, 4)
+            entry["real"][p] = round(raw, 6)  # valeur réelle pour tooltip
+        models.append(entry)
+
+    return Response({
+        "params": params,
+        "models": models
+    }, status=200)
 
 
 @extend_schema(

@@ -4,6 +4,7 @@ import chroma from 'chroma-js';
 import { useNavigate } from 'react-router-dom';
 import { FaBars, FaArrowLeft, FaEye, FaTrash} from 'react-icons/fa';
 import ModelDetailModal from './components/ModelDetailModal';
+import CompareModal from './components/CompareModal';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -46,6 +47,10 @@ const Dashboard = () => {
   const [selectedModel, setSelectedModel] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [editMode,      setEditMode]      = useState(false);
+
+  // comparaison 
+  const [compareList, setCompareList] = useState([]);  // ids cochés (max 10)
+  const [showCompare, setShowCompare] = useState(false);
 
   const colourStyles = {
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
@@ -410,6 +415,15 @@ const Dashboard = () => {
   }
 };
 
+// Ajoute / retire un id ; limite à 10
+const toggleCompare = (id) => {
+  setCompareList(list =>
+    list.includes(id)
+      ? list.filter(x => x !== id)
+      : list.length < 10 ? [...list, id] : list
+  );
+};
+
   return (
     <div>
       <header className="brand-header">
@@ -480,6 +494,15 @@ const Dashboard = () => {
             >
               Enregistrer un nouveau profil de modèle
             </button>
+            {/* ---------- bouton Comparer ---------- */}
+             <button
+               className="compare-button"
+               disabled={compareList.length < 2}
+               onClick={() => setShowCompare(true)}
+               style={{ marginLeft: '0.5rem', opacity: compareList.length < 2 ? 0.5 : 1 }}
+             >
+               Comparer ({compareList.length})
+             </button>
           </div>
 
           {loading && <p style={{ textAlign: 'center', margin: '1rem 0' }}>Chargement...</p>}
@@ -489,6 +512,7 @@ const Dashboard = () => {
             <table>
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}>✔</th>
                   <th style={{ width: '110px' }}>Actions</th>
                   {tableHeaders.map(h => (                
                     <th key={h.key} onClick={() =>{
@@ -512,6 +536,13 @@ const Dashboard = () => {
                 ) : (
                   filteredData.map(model => (
                     <tr key={model.id}>
+                      <td style={{ textAlign:'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={compareList.includes(model.id)}
+                          onChange={() => toggleCompare(model.id)}
+                        />
+                      </td>
                       {/*───────────── Colonne Actions ───────────── */}
                       <td className="action-cell" style={{ textAlign: 'center' }}>
                         {/* Détails */}
@@ -647,6 +678,13 @@ const Dashboard = () => {
                 setSelectedModel(null);
                 setEditMode(false);}}
               onSave={() => {fetchFilteredData();}}
+            />
+          )}
+          {/* ---------- modale de comparaison ---------- */}
+          {showCompare && compareList.length >= 2 && (
+            <CompareModal
+              ids={compareList}
+              onClose={() => setShowCompare(false)}
             />
           )}
         </main>

@@ -304,11 +304,8 @@ const updateStudentField = (index, key, value) => {
           <p>— Aucune évaluation —</p>
         )}
       </Section>
-
-
-
-
         {/* Optimisations */}
+        {(readOnly ? optimizations.length > 0 : form.optimizations.length > 0) && (
         <Section title="Optimisations">
           {readOnly ? (
             /* --- mode lecture identique à avant --- */
@@ -326,6 +323,7 @@ const updateStudentField = (index, key, value) => {
             )
           )}
         </Section>
+        )}
 
 
         {/* Teacher / Student */}
