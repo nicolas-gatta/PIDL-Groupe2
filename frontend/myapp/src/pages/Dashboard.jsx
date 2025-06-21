@@ -488,21 +488,24 @@ const toggleCompare = (id) => {
               onChange={e => setSearchTerm(e.target.value)}
               className="search-input"
             />
-            <button
-              className="new-model-button"
-              onClick={() => navigate('/ajout')}
-            >
-              Enregistrer un nouveau profil de modèle
-            </button>
-            {/* ---------- bouton Comparer ---------- */}
-             <button
-               className="compare-button"
-               disabled={compareList.length < 2}
-               onClick={() => setShowCompare(true)}
-               style={{ marginLeft: '0.5rem', opacity: compareList.length < 2 ? 0.5 : 1 }}
-             >
-               Comparer ({compareList.length})
-             </button>
+            <div>
+              {/* ---------- bouton Comparer ---------- */}
+              <button
+                className="new-model-button"
+                disabled={compareList.length < 2}
+                onClick={() => setShowCompare(true)}
+                style={{ marginRight: '0.5rem', opacity: compareList.length < 2 ? 0.5 : 1 }}
+              >
+                Comparer ({compareList.length})
+              </button>
+              <button
+                className="new-model-button"
+                onClick={() => navigate('/ajout')}
+              >
+                Enregistrer un nouveau profil de modèle
+              </button>
+            </div>
+
           </div>
 
           {loading && <p style={{ textAlign: 'center', margin: '1rem 0' }}>Chargement...</p>}
@@ -513,14 +516,14 @@ const toggleCompare = (id) => {
               <thead>
                 <tr>
                   <th style={{ width: '40px' }}>✔</th>
-                  <th style={{ width: '110px' }}>Actions</th>
 
                   {tableHeaders.map(h => (                
                     <th key={h.key} onClick={() =>{
                       if (h.key === "id" || h.key === "model_size" || h.key === "creation_date"){
                         handleSort(h.key);
                       }
-                    }}>
+                    }}
+                    className={["id", "model_size", "creation_date"].includes(h.key) ? "clickable-header" : ""}>
                     {h.label} {(h.key === "id" || h.key === "model_size" || h.key === "creation_date") ? <span>{getArrow(h.key)}</span> : null}
                     </th>
                   ))}
