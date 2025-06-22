@@ -140,9 +140,9 @@ CREATE TABLE `pidl`.`quantization`(
    `quantization_id` INT PRIMARY KEY AUTO_INCREMENT,
    `quantization_type` VARCHAR(50),             -- e.g., static, dynamic, qat
    `quantization_description` VARCHAR(100),
-   `precision_fk` INT NOT NULL,            -- e.g., int8, fp16
    `quantization_model_size_reduction` FLOAT,
    `quantization_memory_reduction` FLOAT,
+   `precision_fk` INT NOT NULL,            -- e.g., int8, fp16
    `optimization_fk` INT NOT NULL UNIQUE,
    CONSTRAINT `FK_quantization_precision` FOREIGN KEY(`precision_fk`) REFERENCES `pidl`.`precision`(`precision_id`) ON DELETE CASCADE,
    CONSTRAINT `FK_quantization_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
@@ -176,8 +176,8 @@ CREATE TABLE `pidl`.`knowledge_distillation`(
    `student` INT NOT NULL,
    `teacher` INT NOT NULL,
    `optimization_fk` INT NOT NULL UNIQUE,
-   CONSTRAINT `FK_knowledge_teacher_model` FOREIGN KEY(`teacher`) REFERENCES `pidl`.`model`(`model_id`) ,
-   CONSTRAINT `FK_knowledge_student_model` FOREIGN KEY(`student`) REFERENCES `pidl`.`model`(`model_id`) ,
+   CONSTRAINT `FK_knowledge_teacher_model` FOREIGN KEY(`teacher`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE,
+   CONSTRAINT `FK_knowledge_student_model` FOREIGN KEY(`student`) REFERENCES `pidl`.`model`(`model_id`) ON DELETE CASCADE,
    CONSTRAINT `FK_knowledge_optimization` FOREIGN KEY(`optimization_fk`) REFERENCES `pidl`.`optimization`(`optimization_id`) ON DELETE CASCADE
 )DEFAULT CHARSET = utf8mb4;
 
@@ -207,6 +207,11 @@ CREATE TABLE `pidl`.`model_task`(
 
 
 -- File: c:\Users\Utilisateur\Desktop\Projet\PIDL-Groupe2\database\views.sql
+
+-- =====================================================
+-- View: resource
+-- Description: Defines different ressource use for evaluation or/and optimization
+-- =====================================================
 CREATE OR REPLACE VIEW `pidl`.`v_resource` AS
     SELECT
         `resource_id` AS `id`,
@@ -606,10 +611,10 @@ VALUES
 (6, 0.8175, 0.250, 52.00, 1250.0, 0.2101, 0.0290, 0.0060, 0.0120, 506.25, 130.0, 0.56, 0.46, 16, 0.8175, 0.6235, '2024-03-02 11:00:00', 2, 6),
 (7, 0.8176, 0.240, 48.00, 1200.0, 0.1209, 0.0167, 0.0070, 0.0140, 859.57, 132.0, 0.57, 0.47, 17, 0.8176, 0.6238, '2024-03-02 12:00:00', 2, 7),
 (8, 0.7714, 0.230, 43.00, 1150.0, 0.0968, 0.0134, 0.0080, 0.0160, 1158.16, 134.0, 0.58, 0.48, 18, 0.7714, 0.5813, '2024-03-02 13:00:00', 2, 8),
-(9, 0.7650, 0.295, 42.00, 1180.0, 0.1400, 0.0180, 0.0090, 0.0180, 700.00, 136.0, 0.59, 0.49, 19, 0.7650, 0.5700, '2024-03-03 12:00:00', 2, 9),
-(10, 0.7680, 0.285, 41.00, 1170.0, 0.1350, 0.0175, 0.0100, 0.0200, 710.00, 138.0, 0.60, 0.50, 20, 0.7680, 0.5720, '2024-03-03 12:00:00', 2, 10),
-(11, 0.7690, 0.275, 39.00, 1160.0, 0.1250, 0.0165, 0.0110, 0.0220, 720.00, 140.0, 0.61, 0.51, 21, 0.7690, 0.5730, '2024-03-03 12:00:00', 2, 11),
-(12, 0.7700, 0.265, 37.00, 1140.0, 0.1150, 0.0155, 0.0120, 0.0240, 730.00, 142.0, 0.62, 0.52, 22, 0.7700, 0.5740, '2024-03-03 12:00:00', 2, 12),
+(9, 0.7650, 0.295, 42.00, 1180.0, 0.1400, 0.0180, 0.0090, 0.0180, 700.00, 136.0, 0.59, 0.49, 19, 0.7650, 0.5700, '2024-03-03 12:00:00', 2, 1),
+(10, 0.7680, 0.285, 41.00, 1170.0, 0.1350, 0.0175, 0.0100, 0.0200, 710.00, 138.0, 0.60, 0.50, 20, 0.7680, 0.5720, '2024-03-03 12:00:00', 2, 2),
+(11, 0.7690, 0.275, 39.00, 1160.0, 0.1250, 0.0165, 0.0110, 0.0220, 720.00, 140.0, 0.61, 0.51, 21, 0.7690, 0.5730, '2024-03-03 12:00:00', 2, 3),
+(12, 0.7700, 0.265, 37.00, 1140.0, 0.1150, 0.0155, 0.0120, 0.0240, 730.00, 142.0, 0.62, 0.52, 22, 0.7700, 0.5740, '2024-03-03 12:00:00', 2, 4),
 (13, 0.7800, 0.255, 36.00, 1130.0, 0.1100, 0.0150, 0.0130, 0.0260, 740.00, 144.0, 0.63, 0.53, 23, 0.7800, 0.5800, '2024-03-03 12:00:00', 2, 5),
 (14, 0.7820, 0.245, 34.00, 1120.0, 0.1050, 0.0140, 0.0140, 0.0280, 750.00, 146.0, 0.64, 0.54, 24, 0.7820, 0.5820, '2024-03-03 12:00:00', 2, 6),
 (15, 0.7830, 0.235, 33.00, 1110.0, 0.1000, 0.0130, 0.0150, 0.0300, 760.00, 148.0, 0.65, 0.55, 25, 0.7830, 0.5830, '2024-03-03 12:00:00', 2, 7),
@@ -654,7 +659,7 @@ VALUES
 -- =====================================================
 INSERT INTO `pidl`.`model_optimization` (`model_optimization_id`, `model_fk`, `optimization_fk`) 
 VALUES 
-(1, 1, 1), (2, 2, 2), (3, 2, 3),(4, 4, 4),(5, 5, 5);
+(1, 1, 1), (2, 2, 2), (3, 3, 3);
 
 -- =====================================================
 -- Insert Data: model_task
