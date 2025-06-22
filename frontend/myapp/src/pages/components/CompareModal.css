@@ -1,0 +1,26 @@
+.compare-modal {
+  background: #fff;
+  padding: 1.5rem;
+  max-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.3);
+}
+.detail-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.detail-close-button {
+  float: right;
+  font-size: 1.3rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+select {
+  margin-bottom: 1rem;
+}

@@ -414,6 +414,10 @@ th {
   color: white;
 }
 
+.clickable-header {
+  cursor: pointer;
+}
+
 
 /* Boutons icône de la colonne Actions */
 .icon-btn {

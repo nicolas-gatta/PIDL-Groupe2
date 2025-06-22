@@ -14,5 +14,8 @@ urlpatterns = [
     path('update_model/', update_model, name = "update_model"),
     
     path('delete_model/<int:pk>/', delete_model, name = "delete_model"),
+    # urls.py
+    path('compare/', compare_models, name='compare-models')
+
 
 ]
