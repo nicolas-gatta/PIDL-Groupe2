@@ -1,0 +1,198 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table v_resource {
+  id integer
+  name varchar
+  cpu varchar
+  gpu varchar
+  gpu_memory integer
+  computer_ram integer
+  cpu_frenquency float
+  max_watts integer
+  description varchar
+}
+
+Table v_role {
+  id integer
+  name varchar
+  description varchar
+}
+
+Table v_precision {
+  id integer
+  name varchar
+  description varchar
+}
+
+
+Table v_task {
+  id integer
+  name varchar
+  description varchar
+  color varchar
+}
+
+Table v_optimization {
+  id integer
+  name varchar
+  date datetime
+  description varchar
+  cpu varchar
+  gpu varchar
+  gpu_memory integer
+  computer_ram integer
+  cpu_frenquency float
+  max_watts integer
+}
+
+Table v_user {
+  id integer
+  first_name varchar
+  last_name varchar
+  email varchar
+  last_login datetime
+  role varchar
+}
+
+Table v_model {
+  id integer
+  name varchar
+  architecture varchar
+  parameters_m float
+  layers integer
+  model_size_label varchar
+  flops_b float
+  model_size float
+  training_time varchar
+  creation_date datetime
+  description varchar
+  precision varchar
+  user_id integer
+  creator varchar
+}
+
+Table v_evaluation {
+  id integer
+  accuracy float
+  final_loss float
+  latency_ms float
+  execution_time_ms float
+  total_energy_consumption_mwh float
+  total_emissions_gco2eq float
+  avg_emissions_per_inference float
+  avg_energy_per_inference float
+  fps_gpu float
+  fps_cpu float
+  std_cpu float
+  std_gpu float
+  num_macs integer
+  map_50 float
+  map_50_95 float
+  date datetime
+  model_id integer
+  model_name varchar
+  cpu varchar
+  gpu varchar
+  gpu_memory integer
+  computer_ram integer
+  cpu_frenquency float
+  max_watts integer
+}
+
+Table v_quantization {
+  id integer
+  type varchar
+  description varchar
+  model_size_reduction float
+  memory_reduction float
+  target_precision varchar
+  optimization_id integer
+  cpu varchar
+  gpu varchar
+  gpu_memory integer
+  computer_ram integer
+  cpu_frenquency float
+  max_watts integer
+  optimization_date datetime
+}
+
+Table v_pruning {
+  id integer
+  strategy varchar
+  scope varchar
+  rate float
+  compression_ratio float
+  memory_reduction float
+  description varchar
+  optimization_id integer
+  cpu varchar
+  gpu varchar
+  gpu_memory integer
+  computer_ram integer
+  cpu_frenquency float
+  max_watts integer
+  optimization_date datetime
+}
+
+Table v_knowledge_distillation {
+  id integer
+  softmax_temperature float
+  loss_function varchar
+  description varchar
+  teacher_id integer
+  teacher_name varchar
+  student_id integer
+  student_name varchar
+  optimization_id integer
+  cpu varchar
+  gpu varchar
+  gpu_memory integer
+  computer_ram integer
+  cpu_frenquency float
+  max_watts integer
+  optimization_date datetime
+}
+
+Table v_model_optimization {
+  id integer
+  model_id integer
+  model_name varchar
+  optimization_id integer
+  optimization_name varchar
+}
+
+Table v_model_task {
+  id integer
+  model_id integer
+  model_name varchar
+  task_id integer
+  task_name varchar
+}
+
+Table v_simplify_data_model {
+  id integer
+  name varchar
+  architecture varchar
+  parameters_m float
+  layers integer
+  model_size_label varchar
+  flops_b float
+  model_size float
+  training_time float
+  creation_date datetime
+  precision varchar
+  user_id integer
+  creator varchar
+  fps_gpu float
+  fps_cpu float
+  std_cpu float
+  std_gpu float
+  num_macs float
+  total_energy_consumption_mwh float
+  total_emissions_gco2eq float
+  avg_emissions_per_inference float
+  avg_energy_per_inference float
+  map_50 float
+  map_50_95 float
+}
